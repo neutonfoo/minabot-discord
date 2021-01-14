@@ -36,7 +36,12 @@ client.on("ready", async () => {
 
 client.on("message", async msg => {
   // if (msg.channel.id === process.env.DISCORD_CHANNEL_ID) {
-  if (msg.content === "!twice") {
+  if (msg.content.startsWith("!gif ")) {
+    const searchTerm = msg.content.substr(msg.content.indexOf(" ") + 1);
+    console.log(searchTerm);
+
+    msg.channel.send(await getTenorGif(searchTerm));
+  } else if (msg.content === "!twice") {
     msg.channel.send(await getTenorGif("twice"));
   } else if (msg.content === "!mina") {
     msg.channel.send(await getTenorGif("mina"));
@@ -47,5 +52,6 @@ client.on("message", async msg => {
   } else if (msg.content === "!haechan") {
     msg.channel.send(await getTenorGif("haechan"));
   }
+
   // }
 });
