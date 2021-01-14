@@ -44,6 +44,8 @@ client.on("message", async msg => {
     msg.channel.send(await getTenorGif("nct"));
   } else if (msg.content === "!nct") {
     msg.channel.send(await getTenorGif("bts"));
+  } else if (msg.content === "!haechan") {
+    msg.channel.send(await getTenorGif("haechan"));
   }
   // }
 });
