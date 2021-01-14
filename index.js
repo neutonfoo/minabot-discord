@@ -38,8 +38,7 @@ client.on("message", async msg => {
   // if (msg.channel.id === process.env.DISCORD_CHANNEL_ID) {
   if (msg.content.startsWith("!gif ")) {
     const searchTerm = msg.content.substr(msg.content.indexOf(" ") + 1);
-    console.log(searchTerm);
-
+    // console.log(searchTerm);
     msg.channel.send(await getTenorGif(searchTerm));
   } else if (msg.content === "!twice") {
     msg.channel.send(await getTenorGif("twice"));
