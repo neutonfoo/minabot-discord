@@ -46,8 +46,7 @@ client.on("message", async msg => {
     const youtube_url = msg.content.substr(msg.content.indexOf(" ") + 1);
 
     const can_play = await ytdl.getBasicInfo(youtube_url).then(res => {
-      if (res.videoDetails.title.toLocaleLowerCase().includes("nct"))
-        return false;
+      if (res.videoDetails.title.toLowerCase().includes("nct")) return false;
       return true;
     });
 
