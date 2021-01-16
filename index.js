@@ -52,7 +52,7 @@ client.on("message", async msg => {
     });
 
     if (!can_play) {
-      msg.channel.send("No 🤷🏻‍♀️");
+      msg.channel.send("https://tenor.com/NUGN.gif");
       return;
     }
 
