@@ -12,8 +12,10 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "@discordjs/opus": "^0.3.3",
     "axios": "^0.21.1",
-    "discord.js": "^12.5.1"
+    "discord.js": "^12.5.1",
+    "ytdl-core": "^4.4.3"
   },
   "devDependencies": {
     "dotenv": "^8.2.0"

@@ -1,6 +1,6 @@
 if (process.env.NODE_ENV !== "production") require("dotenv").config();
-// require("dotenv").config();
 
+const ytdl = require("ytdl-core");
 const axios = require("axios");
 const instance = axios.create({
   baseURL: "https://api.tenor.com/v1/",
@@ -36,7 +36,18 @@ client.on("ready", async () => {
 
 client.on("message", async msg => {
   // if (msg.channel.id === process.env.DISCORD_CHANNEL_ID) {
-  if (msg.content.startsWith("!gif ")) {
+  if (msg.content.startsWith("!minaplay ")) {
+    const youtube_url = msg.content.substr(msg.content.indexOf(" ") + 1);
+
+    msg.member.voice.channel
+      .join()
+      .then(connection => {
+        connection.play(
+          ytdl(youtube_url, { filter: "audioonly", quality: "highestaudio" })
+        );
+      })
+      .catch(console.error);
+  } else if (msg.content.startsWith("!gif ")) {
     const searchTerm = msg.content.substr(msg.content.indexOf(" ") + 1);
     // console.log(searchTerm);
     msg.channel.send(await getTenorGif(searchTerm));
