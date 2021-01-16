@@ -49,7 +49,7 @@ client.on("message", async msg => {
       return;
     }
 
-    const youtube_stream = ytdl(youtube_url, {
+    const youtube_stream = await ytdl(youtube_url, {
       filter: "audioonly",
       quality: "highestaudio",
     });
