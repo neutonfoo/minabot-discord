@@ -34,12 +34,6 @@ client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
-const youtube_stream = ytdl(youtube_url, {
-  filter: "audioonly",
-  quality: "highestaudio",
-});
-console.log(youtube_stream);
-
 client.on("message", async msg => {
   // if (msg.channel.id === process.env.DISCORD_CHANNEL_ID) {
   if (msg.content.startsWith("!minaplay ")) {
