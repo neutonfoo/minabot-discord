@@ -34,17 +34,37 @@ client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
+const youtube_stream = ytdl(youtube_url, {
+  filter: "audioonly",
+  quality: "highestaudio",
+});
+console.log(youtube_stream);
+
 client.on("message", async msg => {
   // if (msg.channel.id === process.env.DISCORD_CHANNEL_ID) {
   if (msg.content.startsWith("!minaplay ")) {
     const youtube_url = msg.content.substr(msg.content.indexOf(" ") + 1);
 
+    const can_play = await ytdl.getBasicInfo(youtube_url).then(res => {
+      if (res.videoDetails.title.toLocaleLowerCase().includes("nct"))
+        return false;
+      return true;
+    });
+
+    if (!can_play) {
+      msg.channel.send("No 🤷🏻‍♀️");
+      return;
+    }
+
+    const youtube_stream = ytdl(youtube_url, {
+      filter: "audioonly",
+      quality: "highestaudio",
+    });
+
     msg.member.voice.channel
       .join()
       .then(connection => {
-        connection.play(
-          ytdl(youtube_url, { filter: "audioonly", quality: "highestaudio" })
-        );
+        connection.play(youtube_stream);
       })
       .catch(console.error);
   } else if (msg.content.startsWith("!gif ")) {
