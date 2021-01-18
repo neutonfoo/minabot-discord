@@ -5,6 +5,6 @@ module.exports = {
   description: "Loads a random GIF of BTS.",
   args: false,
   async execute(message, args) {
-    message.channel.send(await getTenorGif("nct"));
+    message.channel.send(await getTenorGif("bts"));
   },
 };
