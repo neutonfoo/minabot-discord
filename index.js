@@ -50,6 +50,8 @@ client.on("ready", async () => {
 });
 
 client.on("message", async message => {
+  if (message.channel.id == "800971393691942912") return;
+
   // Custom detects
   if (
     message.content.startsWith("!play") &&
