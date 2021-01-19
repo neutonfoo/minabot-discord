@@ -23,10 +23,11 @@ client.on("ready", async () => {
 
 client.on("message", async message => {
   if (
-    msg.content.startsWith("!play") &&
-    msg.content.toLowerCase().includes("nct")
+    message.content.startsWith("!play") &&
+    message.content.toLowerCase().includes("nct")
   ) {
-    return msg.reply(":nayeon:");
+    const nayeon = client.emojis.find(emoji => emoji.name === "nayeon");
+    return message.react(nayeon);
   }
 
   if (!message.content.startsWith(prefix) || message.author.bot) return;
