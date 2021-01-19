@@ -9,6 +9,26 @@ const client = new Discord.Client();
 client.commands = new Discord.Collection();
 
 const findahaiku = require("findahaiku");
+const haikuReplacements = {
+  shldve: "should've",
+  rly: "really",
+  lmk: "let me know",
+  rip: "rest in peace",
+  ty: "thank you",
+  tbh: "to be honest",
+  ikr: "i know right",
+  lol: "laughing out loud",
+  lmao: "laughing my ass off",
+  exp: "expensive",
+  fr: "for real",
+  gna: "gonna",
+  omfg: "oh my fucking god",
+  omg: "oh my god",
+  ig: "i guess",
+  idk: "i don't know",
+  wtf: "what the fuck",
+  bc: "because",
+};
 
 const commandFiles = fs
   .readdirSync("./commands")
@@ -36,7 +56,17 @@ client.on("message", async message => {
   }
 
   // Haiku detector
-  const { isHaiku, formattedHaiku } = findahaiku.analyzeText(message.content);
+  let haiku = message.content;
+  for (const [needle, replacement] of Object.entries(haikuReplacements)) {
+    if (haiku.startsWith(`${needle} `))
+      haiku = haiku.replace(new RegExp("^" + needle), replacement);
+
+    if (haiku.endsWith(` ${needle}`))
+      haiku = haiku.replace(new RegExp(needle + "$"), replacement);
+
+    haiku = haiku.replace(new RegExp(` ${needle} `, "g"), ` ${replacement} `);
+  }
+  const { isHaiku, formattedHaiku } = findahaiku.analyzeText(haiku);
 
   if (isHaiku) {
     const haikuEmbed = new Discord.MessageEmbed()
