@@ -26,7 +26,9 @@ client.on("message", async message => {
     message.content.startsWith("!play") &&
     message.content.toLowerCase().includes("nct")
   ) {
-    const nayeon = client.emojis.find(emoji => emoji.name === "nayeon");
+    const nayeon = message.guild.emojis.cache.find(
+      emoji => emoji.name === "nayeon"
+    );
     return message.react(nayeon);
   }
 
