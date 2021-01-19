@@ -81,10 +81,8 @@ client.on("message", async message => {
       .setDescription(`*${formattedHaiku}*`)
       .setFooter(`by ${message.author.username}`)
       .setTimestamp();
-    message.channel.send(haikuEmbed);
+    return message.channel.send(haikuEmbed);
   }
-
-  return;
 
   // Commands
   if (!message.content.startsWith(prefix) || message.author.bot) return;
