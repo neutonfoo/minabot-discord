@@ -22,6 +22,13 @@ client.on("ready", async () => {
 });
 
 client.on("message", async message => {
+  if (
+    msg.content.startsWith("!play") &&
+    msg.content.toLowerCase().includes("nct")
+  ) {
+    return msg.reply(":nayeon:");
+  }
+
   if (!message.content.startsWith(prefix) || message.author.bot) return;
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   const command = args.shift().toLowerCase();
