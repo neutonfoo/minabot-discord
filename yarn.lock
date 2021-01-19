@@ -35,6 +35,11 @@ axios@^0.21.1:
   dependencies:
     follow-redirects "^1.10.0"
 
+cmu-pronouncing-dictionary@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/cmu-pronouncing-dictionary/-/cmu-pronouncing-dictionary-1.0.3.tgz#49b99759c4fd393ce4c39555bf18d264326dff65"
+  integrity sha1-SbmXWcT9OTzkw5VVvxjSZDJt/2U=
+
 combined-stream@^1.0.8:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/combined-stream/-/combined-stream-1.0.8.tgz#c3d45a8b34fd730631a110a8a2520682b31d5a7f"
@@ -70,6 +75,13 @@ event-target-shim@^5.0.0:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-5.0.1.tgz#5d4d3ebdf9583d63a5333ce2deb7480ab2b05789"
   integrity sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
+
+findahaiku@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/findahaiku/-/findahaiku-1.1.2.tgz#8732454ec6b101fb6e77159e0868552e4b4514c7"
+  integrity sha512-MgrgVkHrwQSM5D1YLrcUtAYiSO+yuxw+0EyPcamFDHzOIOYw9vqctDdSMjjXC0DFdy+hMRPE1Xps8Jz/eiuU9A==
+  dependencies:
+    cmu-pronouncing-dictionary "^1.0.3"
 
 follow-redirects@^1.10.0:
   version "1.13.1"
