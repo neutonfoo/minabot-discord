@@ -13,12 +13,14 @@ const client: Client = new Client({
 client.on("ready", () => {
   if (client.user) {
     console.log(`Logged in as ${client.user.tag}!`);
-  }
 
-  // const channel = client.channels.cache.get(
-  //   "950951957575655504"
-  // ) as TextChannel;
-  // channel.send("https://c.tenor.com/0k5X4YWnYdMAAAAM/mina-twice.gif");
+    if (process.env.NODE_ENV === "production") {
+      const channel = client.channels.cache.get(
+        process.env.BOT_STATUS_CHANNEL_ID!
+      ) as TextChannel;
+      channel.send(`${client.user.tag} deployed!`);
+    }
+  }
 });
 
 for (const DISCORD_BOT_MODULE of DISCORD_BOT_MODULES.map(DISCORD_BOT_MODULE =>
