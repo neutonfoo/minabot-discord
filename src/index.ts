@@ -2,7 +2,7 @@ import { Client, Intents, TextChannel } from "discord.js";
 
 if (process.env.NODE_ENV !== "production") require("dotenv").config();
 
-const DISCORD_BOT_MODULES = ["./events/ping", "./events/wordle"];
+const DISCORD_BOT_MODULES = ["./modules/ping", "./modules/wordle"];
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 

@@ -1,4 +1,4 @@
-import { Client, Message } from "discord.js";
+import { Client, Message, TextChannel } from "discord.js";
 import { connect } from "mongoose";
 import { IPlayer, Player } from "./wordle.model";
 
@@ -83,16 +83,8 @@ module.exports = {
         if (content.startsWith(prefix)) {
           const commandParts = content.substring(prefix.length).split(" ");
 
-          // console.log(commandParts);
-
           if (commandParts[0] === "h" || commandParts[0] === "help") {
-            let helpMessage = `**Wordle Tracker Help**\n`;
-            helpMessage += `\`${prefix}h | help\`: Show this help message\n`;
-            helpMessage += `\`${prefix}l | leaderboard\`: Show leaderboard\n`;
-            helpMessage += `\`${prefix}s | stats\`: Show your stats\n`;
-            helpMessage += `\`${prefix}s @user\`: Show stats for a specific user`;
-
-            await message.channel.send(helpMessage);
+            help(message.channel as TextChannel);
           } else if (
             commandParts[0] === "l" ||
             commandParts[0] === "leaderboard"
@@ -144,122 +136,60 @@ module.exports = {
               );
             }
           } else if (commandParts[0] === "s" || commandParts[0] === "stats") {
-            const statsUserId = commandParts[1]
-              ? commandParts[1].substring(2, commandParts[1].length - 1)
-              : authorId;
+          } else if (commandParts[0] === "bowser_revolution") {
+            await message.channel.send(
+              "I've been thinking. Everybody's so focused on :slot_machine: points. But there's more to life..."
+            );
+            await message.channel.send(
+              "Maybe you'll understand if you're all equal... with the same number of :slot_machine: points!"
+            );
 
-            const player = await Player.findOne({ id: statsUserId });
+            const playersClean: IPlayer[] = [];
 
-            if (player) {
-              let statsMessage = `**${player.name} Wordle Stats**\n`;
+            let totalPoints = 0;
 
-              player.games.sort(
-                (game1, game2) => game1.wordleIndex - game2.wordleIndex
-              );
-
-              for (let attempts = 0; attempts <= 6; attempts++) {
-                const gamesAtAttempt = player.games.filter(
-                  game => game.attempts === attempts
-                );
-
-                statsMessage += `**${attempts === 0 ? "X" : attempts}** *(${
-                  gamesAtAttempt.length
-                } game${gamesAtAttempt.length === 1 ? "" : "s"})*: ${
-                  gamesAtAttempt.length === 0
-                    ? "None"
-                    : gamesAtAttempt
-                        .map(
-                          game =>
-                            `${game.wordleIndex}${
-                              game.isHardMode ? `\\\*` : ""
-                            }`
-                        )
-                        .join(", ")
-                }\n`;
+            const players = await Player.find();
+            for (const player of players) {
+              for (const game of player.games) {
+                // If attempts > 0 -> they did not fail
+                if (game.attempts > 0) {
+                  totalPoints += scoring[game.attempts];
+                  if (game.isHardMode) totalPoints += scoringHardMode;
+                }
               }
 
-              await message.channel.send(statsMessage);
-            } else {
-              await message.channel.send(
-                `<@${statsUserId}> is not playing Wordle.`
-              );
+              playersClean.push({
+                id: player.id,
+                name: player.name,
+                totalScore: 0,
+                games: player.games,
+              });
             }
+
+            for (const player of playersClean) {
+              player.totalScore = totalPoints / playersClean.length;
+            }
+
+            await message.channel.send(
+              `Total points: **${totalPoints}**. Points per player = ${totalPoints} / ${
+                playersClean.length
+              } = **${totalPoints / playersClean.length}**`
+            );
+
+            await message.channel.send(
+              "**Wordle Leaderboard**\n" +
+                playersClean
+                  .map(
+                    (player, playerIndex) =>
+                      `${playerIndex + 1}: ${player.name} has **${
+                        player.totalScore
+                      } point${player.totalScore === 1 ? "" : "s"}** over ${
+                        player.games.length
+                      } game${player.games.length === 1 ? "" : "s"}.`
+                  )
+                  .join("\n")
+            );
           }
-
-          // else if (command === "lv") {
-          //   // # Leaderboard (Verbose)
-
-          //   const players = await Player.find();
-          //   for (const player of players) {
-          //     let totalScore = 0;
-
-          //     for (const game of player.games) {
-          //       // If attempts > 0, or if they did not fail
-          //       if (game.attempts > 0) {
-          //         totalScore += scoring[game.attempts];
-
-          //         if (game.isHardMode) totalScore += scoringHardMode;
-          //       }
-          //     }
-
-          //     playersClean.push({
-          //       id: player.id,
-          //       name: player.name,
-          //       totalScore: totalScore,
-          //       games: player.games,
-          //     });
-          //   }
-
-          //   playersClean.sort(player => player.totalScore);
-
-          //   if (playersClean.length === 0) {
-          //     await message.channel.send("No players yet.");
-          //   } else {
-          //     await message.channel.send(
-          //       playersClean
-          //         .map((player, playerIndex) => {
-          //           const positionLine = `${playerIndex + 1}: ${
-          //             player.name
-          //           } has **${player.totalScore} point${
-          //             player.totalScore === 1 ? "" : "s"
-          //           }** over ${player.games.length} game${
-          //             player.games.length === 1 ? "" : "s"
-          //           }.`;
-
-          //           let history = `\t\t**:regional_indicator_x: ** ${
-          //             player.games.filter(game => game.attempts === 0).length
-          //           } games`;
-
-          //           history += `\t**:one:** ${
-          //             player.games.filter(game => game.attempts === 1).length
-          //           } games`;
-
-          //           history += `\t**:two:** ${
-          //             player.games.filter(game => game.attempts === 2).length
-          //           } games`;
-
-          //           history += `\t**:three:** ${
-          //             player.games.filter(game => game.attempts === 3).length
-          //           } games`;
-
-          //           history += `\t**:four:** ${
-          //             player.games.filter(game => game.attempts === 4).length
-          //           } games`;
-
-          //           history += `\t**:five:** ${
-          //             player.games.filter(game => game.attempts === 5).length
-          //           } games`;
-
-          //           history += `\t**:six:** ${
-          //             player.games.filter(game => game.attempts === 6).length
-          //           } games`;
-
-          //           return `${positionLine}\n${history}`;
-          //         })
-          //         .join("\n")
-          //     );
-          //   }
-          // }
         }
 
         // If in Wordle channel
@@ -329,3 +259,13 @@ module.exports = {
     },
   ],
 };
+
+async function help(channel: TextChannel) {
+  let helpMessage = `**Wordle Tracker Help**\n`;
+  helpMessage += `\`${prefix}h | help\`: Show this help message\n`;
+  helpMessage += `\`${prefix}l | leaderboard\`: Show leaderboard\n`;
+  helpMessage += `\`${prefix}s | stats\`: Show your stats\n`;
+  helpMessage += `\`${prefix}s @user\`: Show stats for a specific user`;
+
+  await channel.send(helpMessage);
+}
