@@ -18,7 +18,7 @@ client.on("ready", () => {
       const channel = client.channels.cache.get(
         process.env.BOT_STATUS_CHANNEL_ID!
       ) as TextChannel;
-      channel.send(`${client.user.tag} deployed!`);
+      channel.send(`${client.user.tag} deployed on **Production**.`);
     }
   }
 });
