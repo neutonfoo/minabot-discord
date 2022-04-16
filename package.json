@@ -12,6 +12,7 @@
     "start": "node ."
   },
   "devDependencies": {
+    "@types/cron": "^1.7.3",
     "dotenv": "^16.0.0",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.6.3"
