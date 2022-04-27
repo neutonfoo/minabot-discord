@@ -154,16 +154,16 @@ async function leaderboard(channel: TextChannel) {
 
     await channel.send(
       `**Wordle Leaderboard**\n` +
-        `(Streaks are currently not automatically recalculated)\n` +
-        wordleMeta!.streaks
-          .map(
-            player =>
-              `:fire: ${player.name} is on a streak of ${player.games} game${
-                player.games === 1 ? "" : "s"
-              } :fire: `
-          )
-          .join("\n") +
-        "\n\n" +
+        // `(Streaks are currently not automatically recalculated)\n` +
+        // wordleMeta!.streaks
+        //   .map(
+        //     player =>
+        //       `:fire: ${player.name} is on a streak of ${player.games} game${
+        //         player.games === 1 ? "" : "s"
+        //       } :fire: `
+        //   )
+        //   .join("\n") +
+        // "\n\n" +
         players
           .map(player => {
             if (player.pointsScore < previousPointScore || isFirstPlayer) {
