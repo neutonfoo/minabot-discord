@@ -26,8 +26,6 @@ client.on("ready", () => {
 for (const DISCORD_BOT_MODULE of DISCORD_BOT_MODULES.map(DISCORD_BOT_MODULE =>
   require(DISCORD_BOT_MODULE)
 )) {
-  // const DISCORD_BOT_MODULE = require(DISCORD_BOT_MODULE_FILENAME);
-
   for (const event of DISCORD_BOT_MODULE.events) {
     client.on(event.name, (...args: String[]) => {
       try {
