@@ -316,7 +316,14 @@ async function parseWordle(firstLine: string, message: Message) {
 
     const player =
       (await Player.findOne({ id: authorId })) ||
-      new Player({ id: authorId, name: authorName, games: [] });
+      new Player({
+        id: authorId,
+        name: authorName,
+        pointsScore: 0,
+        roundsScore: 0,
+        longestStreak: 0,
+        games: [],
+      });
 
     if (!player.games.find(game => game.wordleIndex === wordleIndex)) {
       const game: Game = {
