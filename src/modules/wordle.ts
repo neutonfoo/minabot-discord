@@ -84,12 +84,12 @@ module.exports = {
           const commandParts = content.substring(prefix.length).split(" ");
 
           if (commandParts[0] === "h" || commandParts[0] === "help") {
-            help(message.channel as TextChannel);
+            await help(message.channel as TextChannel);
           } else if (
             commandParts[0] === "l" ||
             commandParts[0] === "leaderboard"
           ) {
-            leaderboard(message.channel as TextChannel);
+            await leaderboard(message.channel as TextChannel);
           } else if (commandParts[0] === "s" || commandParts[0] === "stats") {
           }
 
@@ -99,8 +99,8 @@ module.exports = {
             if (commandParts[0] === "recalculate_points") {
               const liveWordleIndex = Number.parseInt(commandParts[1]);
 
-              adminRecalculatePoints(liveWordleIndex);
-              leaderboard(message.channel as TextChannel);
+              await adminRecalculatePoints(liveWordleIndex);
+              await leaderboard(message.channel as TextChannel);
             }
           }
         }
@@ -108,7 +108,7 @@ module.exports = {
         // If in Wordle channel
         if (channelId === WORDLE_CHANNEL_ID) {
           const firstLine = content.split(/\r?\n/)[0];
-          parseWordle(firstLine, message);
+          await parseWordle(firstLine, message);
         }
       },
     },
