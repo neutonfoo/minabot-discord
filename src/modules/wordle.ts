@@ -87,7 +87,12 @@ module.exports = {
             await help(message.channel as TextChannel);
           } else if (
             commandParts[0] === "l" ||
-            commandParts[0] === "leaderboard"
+            commandParts[0] === "weeklyLeaderboard"
+          ) {
+            await weeklyLeaderboard(message.channel as TextChannel);
+          } else if (
+            commandParts[0] === "lt" ||
+            commandParts[0] === "leaderboardTotal"
           ) {
             await leaderboard(message.channel as TextChannel);
           } else if (commandParts[0] === "s" || commandParts[0] === "stats") {
@@ -148,7 +153,9 @@ async function cronWeeklyReset(client: Client): Promise<CronJob> {
         player.save();
       }
 
-      leaderboard(client.channels.cache.get(WORDLE_CHANNEL_ID!) as TextChannel);
+      weeklyLeaderboard(
+        client.channels.cache.get(WORDLE_CHANNEL_ID!) as TextChannel
+      );
     },
     null,
     false,
@@ -159,14 +166,14 @@ async function cronWeeklyReset(client: Client): Promise<CronJob> {
 async function help(channel: TextChannel) {
   let helpMessage = `**Wordle Tracker Help**\n`;
   helpMessage += `\`${prefix}h | help\`: Show this help message\n`;
-  helpMessage += `\`${prefix}l | leaderboard\`: Show leaderboard\n`;
+  helpMessage += `\`${prefix}l | weeklyLeaderboard\`: Show weeklyLeaderboard\n`;
   helpMessage += `\`${prefix}s | stats\`: Show your stats\n`;
   helpMessage += `\`${prefix}s @user\`: Show stats for a specific user`;
 
   await channel.send(helpMessage);
 }
 
-async function leaderboard(channel: TextChannel) {
+async function weeklyLeaderboard(channel: TextChannel) {
   // # Leaderboard
   const players = await Player.find().sort({ weeklyPointsScore: -1 });
 
@@ -198,11 +205,47 @@ async function leaderboard(channel: TextChannel) {
 
             return `${currentRank}: ${player.name} has **${
               player.weeklyPointsScore
-            } point${player.weeklyPointsScore === 1 ? "" : "s"}** this week. (${
+            } point${player.weeklyPointsScore === 1 ? "" : "s"}** this week.`;
+          })
+          .join("\n")
+    );
+  }
+}
+
+async function leaderboard(channel: TextChannel) {
+  // # Leaderboard
+  const players = await Player.find().sort({ pointsScore: -1 });
+
+  if (players.length === 0) {
+    await channel.send("No players yet.");
+  } else {
+    let currentRank = 1;
+    let playersInCurrentRank = 0;
+    let previousPointScore = 0;
+    let isFirstPlayer = true;
+
+    const wordleMeta = await WordleMeta.findOne();
+
+    await channel.send(
+      `**Wordle Leaderboard**\n` +
+        players
+          .map(player => {
+            if (player.pointsScore < previousPointScore || isFirstPlayer) {
+              currentRank = currentRank + playersInCurrentRank;
+              playersInCurrentRank = 1;
+
+              isFirstPlayer = false;
+            } else if (player.pointsScore === previousPointScore) {
+              playersInCurrentRank++;
+            }
+
+            previousPointScore = player.pointsScore;
+
+            return `${currentRank}: ${player.name} has **${
               player.pointsScore
-            } total points over ${player.games.length} game${
-              player.games.length === 1 ? "" : "s"
-            }.)`;
+            } point${player.pointsScore === 1 ? "" : "s"}** over ${
+              player.games.length
+            } game${player.games.length === 1 ? "" : "s"}.`;
           })
           .join("\n")
     );
@@ -305,7 +348,9 @@ async function parseWordle(firstLine: string, message: Message) {
       );
 
       await message.channel.send(
-        `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} points). You now have **${player.weeklyPointsScore} points** this week.`
+        `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} point${
+          deltaPointsScore === 1 ? "" : "s"
+        }). You now have **${player.weeklyPointsScore} points** this week.`
       );
 
       // await message.channel.send(
