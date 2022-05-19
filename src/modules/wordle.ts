@@ -205,7 +205,11 @@ async function weeklyLeaderboard(channel: TextChannel) {
 
             return `${currentRank}: ${player.name} has **${
               player.weeklyPointsScore
-            } point${player.weeklyPointsScore === 1 ? "" : "s"}** this week.`;
+            } point${
+              player.weeklyPointsScore === 1 ? "" : "s"
+            }** this week over ${player.weeklyGamesPlayed} game${
+              player.weeklyGamesPlayed === 1 ? "" : "s"
+            }.`;
           })
           .join("\n")
     );
@@ -353,11 +357,7 @@ async function parseWordle(firstLine: string, message: Message) {
       await message.channel.send(
         `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} point${
           deltaPointsScore === 1 ? "" : "s"
-        }). You now have **${
-          player.weeklyPointsScore
-        } points** this week over ${player.weeklyGamesPlayed} game${
-          player.weeklyGamesPlayed === 1 ? "" : "s"
-        }.`
+        }). You now have **${player.weeklyPointsScore} points** this week.`
       );
 
       // await message.channel.send(
