@@ -1,3 +1,4 @@
+import { CronJob } from "cron";
 import { Client, Message, TextChannel } from "discord.js";
 import { connect } from "mongoose";
 import { Game, IPlayer, Player, WordleMeta } from "./wordle.model";
@@ -56,13 +57,15 @@ module.exports = {
         // ###
 
         // const wordleMeta = new WordleMeta({
-        //   currentWordleIndex: 297,
-        //   numberOfPlayers: 4,
+        //   currentWordleIndex: 334,
+        //   weekStartWordleIndex: 331,
+        //   numberOfPlayers: 5,
         //   numberOfPlays: 0,
         //   streaks: [],
         // });
         // await wordleMeta.save();
-        // (await cronGameChecker(client)).start();
+        (await cronDailyIncrement(client)).start();
+        (await cronWeeklyReset(client)).start();
       },
     },
     {
@@ -112,21 +115,49 @@ module.exports = {
   ],
 };
 
-// async function cronGameChecker(client: Client): Promise<CronJob> {
-//   return new CronJob(
-//     "*/10 * * * * *",
-//     // "59 23 * * *",
-//     function () {
-//       const channel = client.channels.cache.get(
-//         WORDLE_CHANNEL_ID!
-//       ) as TextChannel;
-//       channel.send(`test ${Math.random()}`);
-//     },
-//     null,
-//     false,
-//     "America/Los_Angeles"
-//   );
-// }
+async function cronDailyIncrement(client: Client): Promise<CronJob> {
+  return new CronJob(
+    // Everyday on 00:00
+    "0 0 0 * * *",
+    async function () {
+      const wordleMeta = await WordleMeta.findOne();
+      if (wordleMeta) {
+        wordleMeta.currentWordleIndex += 1;
+        wordleMeta.save();
+      }
+    },
+    null,
+    false,
+    "America/Los_Angeles"
+  );
+}
+async function cronWeeklyReset(client: Client): Promise<CronJob> {
+  return new CronJob(
+    // Every Monday
+    "0 0 0 * * 1",
+    async function () {
+      const wordleMeta = await WordleMeta.findOne();
+      if (wordleMeta) {
+        wordleMeta.weekStartWordleIndex += 7;
+        wordleMeta.save();
+      }
+
+      const players = await Player.find();
+      for (const player of players) {
+        player.weeklyPointsScore = 0;
+        player.save();
+      }
+
+      // const channel = client.channels.cache.get(
+      //   WORDLE_CHANNEL_ID!
+      // ) as TextChannel;
+      // channel.send(`test ${Math.random()}`);
+    },
+    null,
+    false,
+    "America/Los_Angeles"
+  );
+}
 
 async function help(channel: TextChannel) {
   let helpMessage = `**Wordle Tracker Help**\n`;
@@ -150,45 +181,64 @@ async function leaderboard(channel: TextChannel) {
     let previousPointScore = 0;
     let isFirstPlayer = true;
 
-    const wordleMeta = await WordleMeta.findOne();
+    // const wordleMeta = await WordleMeta.findOne();
 
     await channel.send(
       `**Wordle Leaderboard**\n` +
-        // `(Streaks are currently not automatically recalculated)\n` +
-        // wordleMeta!.streaks
-        //   .map(
-        //     player =>
-        //       `:fire: ${player.name} is on a streak of ${player.games} game${
-        //         player.games === 1 ? "" : "s"
-        //       } :fire: `
-        //   )
-        //   .join("\n") +
-        // "\n\n" +
         players
           .map(player => {
-            if (player.pointsScore < previousPointScore || isFirstPlayer) {
+            if (
+              player.weeklyPointsScore < previousPointScore ||
+              isFirstPlayer
+            ) {
               currentRank = currentRank + playersInCurrentRank;
               playersInCurrentRank = 1;
 
               isFirstPlayer = false;
-            } else if (player.pointsScore === previousPointScore) {
+            } else if (player.weeklyPointsScore === previousPointScore) {
               playersInCurrentRank++;
             }
 
-            previousPointScore = player.pointsScore;
+            previousPointScore = player.weeklyPointsScore;
 
             return `${currentRank}: ${player.name} has **${
-              player.pointsScore
-            } point${player.pointsScore === 1 ? "" : "s"}** over ${
+              player.weeklyPointsScore
+            } point${
+              player.weeklyPointsScore === 1 ? "" : "s"
+            }** this week and ${player.pointsScore} total points over ${
               player.games.length
-            } game${player.games.length === 1 ? "" : "s"}.`;
+            } games.`;
           })
           .join("\n")
+      // `**Wordle Leaderboard**\n` +
+      //   players
+      //     .map(player => {
+      //       if (player.pointsScore < previousPointScore || isFirstPlayer) {
+      //         currentRank = currentRank + playersInCurrentRank;
+      //         playersInCurrentRank = 1;
+
+      //         isFirstPlayer = false;
+      //       } else if (player.pointsScore === previousPointScore) {
+      //         playersInCurrentRank++;
+      //       }
+
+      //       previousPointScore = player.pointsScore;
+
+      //       return `${currentRank}: ${player.name} has **${
+      //         player.pointsScore
+      //       } point${player.pointsScore === 1 ? "" : "s"}** over ${
+      //         player.games.length
+      //       } game${player.games.length === 1 ? "" : "s"}.`;
+      //     })
+      //     .join("\n")
     );
   }
 }
 
 async function adminRecalculatePoints(liveWordleIndex: number) {
+  // Get the Wordle Meta (for weekly score calculation)
+  const wordleMeta = await WordleMeta.findOne({});
+
   // Get all the players
   const players = await Player.find();
 
@@ -197,6 +247,7 @@ async function adminRecalculatePoints(liveWordleIndex: number) {
 
   // # Calculate pointsScore
   for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
+    // Get the actual player
     const player = players[playerIndex];
 
     // Sort player.games by Wordle Index desc for later
@@ -207,96 +258,28 @@ async function adminRecalculatePoints(liveWordleIndex: number) {
     let pointsScore = 0;
 
     for (const game of player.games) {
-      pointsScore += scoring[game.attempts - 1];
-      if (game.isHardMode) pointsScore += scoringHardMode;
+      let gameScore = scoring[game.attempts - 1];
+      if (game.isHardMode) gameScore += scoringHardMode;
+
+      pointsScore += gameScore;
+
+      player.weeklyPointsScore = 0;
+
+      if (wordleMeta) {
+        if (
+          game.wordleIndex >= wordleMeta.weekStartWordleIndex &&
+          game.wordleIndex <= wordleMeta.currentWordleIndex
+        ) {
+          player.weeklyPointsScore += gameScore;
+        }
+      }
     }
 
     player.pointsScore = pointsScore;
     player.save();
   }
 
-  // # Calculate roundsScore
-  // const streakingPlayers: IPlayer[] = [];
-  // for (const player of playersCopy) {
-  //   player.currentStreak = 0;
-  //   streakingPlayers.push(player);
-  // }
-
-  // for (let gameIndex = 0; gameIndex < liveWordleIndex; gameIndex++) {
-  //   if (streakingPlayers.length === 0) break;
-
-  //   const gameBestPlayers: IPlayer[] = [];
-  //   let gameBestAttempts = 7; // This is the max/worst value
-
-  //   // Loop through each player
-  //   for (const [playerIndex, player] of streakingPlayers.entries()) {
-  //     // If a game is not in sequence, set streak and continue
-  //     if (player.games[gameIndex].wordleIndex != liveWordleIndex - gameIndex) {
-  //       continue;
-  //     } else if (player.games[gameIndex].attempts < gameBestAttempts) {
-  //       gameBestAttempts = player.games[gameIndex].attempts;
-
-  //       // Clear the existing array
-  //       gameBestPlayers.length = 0;
-  //       gameBestPlayers.push(player);
-  //     } else if (player.games[gameIndex].attempts == gameBestAttempts) {
-  //       gameBestPlayers.push(player);
-  //     }
-  //   }
-
-  //   streakingPlayers.filter(player => gameBestPlayers.indexOf(player) > -1);
-  // }
-
-  // const longestPlayerGames = Math.max(
-  //   ...playersCopy.map(({ games }) => games.length)
-  // );
-
-  // const latestMinAttempts = Math.min(
-  //   ...playersCopy.map(({ games }) => games[0].attempts)
-  // );
-  // const latestStreakPlayers = playersCopy.filter(
-  //   player => player.games[0].attempts === latestMinAttempts
-  // );
-  // latestStreakPlayers.forEach(player => {
-  //   player.currentStreak = 1;
-  //   player.isStreaking = true;
-  // });
-
-  // // Go down each game and add streaks
-  // for (let gameIndex = 1; gameIndex < longestPlayerGames; gameIndex++) {
-  //   const minAttempts = Math.min(
-  //     ...playersCopy.map(({ games }) =>
-  //       games[gameIndex] ? games[gameIndex].attempts : 7
-  //     )
-  //   );
-
-  //   const streakPlayers = latestStreakPlayers.filter(player =>
-  //     player.games[gameIndex]
-  //       ? player.games[gameIndex].attempts === minAttempts
-  //         ? player.isStreaking
-  //         : (player.isStreaking = false && false)
-  //       : (player.isStreaking = false && false)
-  //   );
-
-  //   for (const player of streakPlayers) {
-  //     player.currentStreak++;
-  //   }
-
-  //   if (latestStreakPlayers.filter(player => player.isStreaking).length === 0) {
-  //     break;
-  //   }
-  // }
-  // const wordleMeta = await WordleMeta.findOne();
-
-  // if (wordleMeta) {
-  //   // for(const player of latestStreakPlayers) {
-  //   wordleMeta.streaks = latestStreakPlayers.map(player => ({
-  //     id: player.id,
-  //     name: player.name,
-  //     games: player.currentStreak,
-  //   }));
-  //   wordleMeta.save();
-  // }
+  return 0;
 }
 
 async function parseWordle(firstLine: string, message: Message) {
@@ -319,6 +302,7 @@ async function parseWordle(firstLine: string, message: Message) {
       new Player({
         id: authorId,
         name: authorName,
+        weeklyPointsScore: 0,
         pointsScore: 0,
         roundsScore: 0,
         longestStreak: 0,
@@ -336,6 +320,7 @@ async function parseWordle(firstLine: string, message: Message) {
         scoring[game.attempts - 1] + (game.isHardMode ? scoringHardMode : 0);
 
       player.pointsScore += deltaPointsScore;
+      player.weeklyPointsScore += deltaPointsScore;
 
       player.games.push(game);
 
@@ -354,16 +339,6 @@ async function parseWordle(firstLine: string, message: Message) {
       await message.channel.send(
         `<@${authorId}> - Wordle ${wordleIndex} already added.`
       );
-
-      // const wordleMeta = await WordleMeta.findOne();
-      // if (wordleMeta) {
-      //   wordleMeta.numberOfPlays++;
-      //   wordleMeta.save();
-
-      //   if (wordleMeta.numberOfPlays === wordleMeta.numberOfPlayers) {
-      //     checkRounds(wordleMeta.currentWordleIndex);
-      //   }
-      // }
     }
   }
 }
