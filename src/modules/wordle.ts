@@ -200,7 +200,9 @@ async function leaderboard(channel: TextChannel) {
               player.weeklyPointsScore
             } point${player.weeklyPointsScore === 1 ? "" : "s"}** this week. (${
               player.pointsScore
-            } total points over ${player.games.length} games.)`;
+            } total points over ${player.games.length} game${
+              player.games.length === 1 ? "" : "s"
+            }.)`;
           })
           .join("\n")
     );
