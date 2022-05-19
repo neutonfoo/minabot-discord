@@ -4,6 +4,7 @@ export interface IPlayer {
   id: number;
   name: string;
   pointsScore: number;
+  weeklyGamesPlayed: number;
   weeklyPointsScore: number;
   roundsScore: number;
   longestStreak: number;
@@ -22,6 +23,7 @@ const playerSchema = new Schema<IPlayer>({
   id: { type: Number, required: true },
   name: { type: String, required: true },
   pointsScore: { type: Number },
+  weeklyGamesPlayed: { type: Number },
   weeklyPointsScore: { type: Number },
   roundsScore: { type: Number },
   longestStreak: { type: Number },

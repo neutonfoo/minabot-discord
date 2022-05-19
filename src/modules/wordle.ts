@@ -274,6 +274,7 @@ async function adminRecalculatePoints(liveWordleIndex: number) {
 
     let pointsScore = 0;
 
+    player.weeklyGamesPlayed = 0;
     player.weeklyPointsScore = 0;
 
     for (const game of player.games) {
@@ -287,6 +288,7 @@ async function adminRecalculatePoints(liveWordleIndex: number) {
           game.wordleIndex >= wordleMeta.weekStartWordleIndex &&
           game.wordleIndex <= wordleMeta.currentWordleIndex
         ) {
+          player.weeklyGamesPlayed += 1;
           player.weeklyPointsScore += gameScore;
         }
       }
@@ -335,6 +337,7 @@ async function parseWordle(firstLine: string, message: Message) {
         scoring[game.attempts - 1] + (game.isHardMode ? scoringHardMode : 0);
 
       player.pointsScore += deltaPointsScore;
+      player.weeklyGamesPlayed += 1;
       player.weeklyPointsScore += deltaPointsScore;
 
       player.games.push(game);
@@ -350,7 +353,11 @@ async function parseWordle(firstLine: string, message: Message) {
       await message.channel.send(
         `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} point${
           deltaPointsScore === 1 ? "" : "s"
-        }). You now have **${player.weeklyPointsScore} points** this week.`
+        }). You now have **${
+          player.weeklyPointsScore
+        } points** this week over ${player.weeklyGamesPlayed} game${
+          player.weeklyGamesPlayed === 1 ? "" : "s"
+        }.`
       );
 
       // await message.channel.send(
