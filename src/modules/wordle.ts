@@ -148,10 +148,7 @@ async function cronWeeklyReset(client: Client): Promise<CronJob> {
         player.save();
       }
 
-      // const channel = client.channels.cache.get(
-      //   WORDLE_CHANNEL_ID!
-      // ) as TextChannel;
-      // channel.send(`test ${Math.random()}`);
+      leaderboard(client.channels.cache.get(WORDLE_CHANNEL_ID!) as TextChannel);
     },
     null,
     false,
@@ -178,59 +175,34 @@ async function leaderboard(channel: TextChannel) {
   } else {
     let currentRank = 1;
     let playersInCurrentRank = 0;
-    let previousPointScore = 0;
+    let previousWeeklyPointScore = 0;
     let isFirstPlayer = true;
-
-    // const wordleMeta = await WordleMeta.findOne();
 
     await channel.send(
       `**Wordle Leaderboard**\n` +
         players
           .map(player => {
             if (
-              player.weeklyPointsScore < previousPointScore ||
+              player.weeklyPointsScore < previousWeeklyPointScore ||
               isFirstPlayer
             ) {
               currentRank = currentRank + playersInCurrentRank;
               playersInCurrentRank = 1;
 
               isFirstPlayer = false;
-            } else if (player.weeklyPointsScore === previousPointScore) {
+            } else if (player.weeklyPointsScore === previousWeeklyPointScore) {
               playersInCurrentRank++;
             }
 
-            previousPointScore = player.weeklyPointsScore;
+            previousWeeklyPointScore = player.weeklyPointsScore;
 
             return `${currentRank}: ${player.name} has **${
               player.weeklyPointsScore
-            } point${
-              player.weeklyPointsScore === 1 ? "" : "s"
-            }** this week and ${player.pointsScore} total points over ${
-              player.games.length
-            } games.`;
+            } point${player.weeklyPointsScore === 1 ? "" : "s"}** this week. (${
+              player.pointsScore
+            } total points over ${player.games.length} games.)`;
           })
           .join("\n")
-      // `**Wordle Leaderboard**\n` +
-      //   players
-      //     .map(player => {
-      //       if (player.pointsScore < previousPointScore || isFirstPlayer) {
-      //         currentRank = currentRank + playersInCurrentRank;
-      //         playersInCurrentRank = 1;
-
-      //         isFirstPlayer = false;
-      //       } else if (player.pointsScore === previousPointScore) {
-      //         playersInCurrentRank++;
-      //       }
-
-      //       previousPointScore = player.pointsScore;
-
-      //       return `${currentRank}: ${player.name} has **${
-      //         player.pointsScore
-      //       } point${player.pointsScore === 1 ? "" : "s"}** over ${
-      //         player.games.length
-      //       } game${player.games.length === 1 ? "" : "s"}.`;
-      //     })
-      //     .join("\n")
     );
   }
 }
