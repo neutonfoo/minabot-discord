@@ -257,13 +257,13 @@ async function adminRecalculatePoints(liveWordleIndex: number) {
 
     let pointsScore = 0;
 
+    player.weeklyPointsScore = 0;
+
     for (const game of player.games) {
       let gameScore = scoring[game.attempts - 1];
       if (game.isHardMode) gameScore += scoringHardMode;
 
       pointsScore += gameScore;
-
-      player.weeklyPointsScore = 0;
 
       if (wordleMeta) {
         if (
