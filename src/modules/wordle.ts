@@ -348,11 +348,11 @@ async function parseWordle(firstLine: string, message: Message) {
       );
 
       await message.channel.send(
-        `<@${authorId}> - Wordle game ${wordleIndex} added (+${deltaPointsScore} points). You now have **${player.pointsScore} points**.`
+        `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} points). You now have **${player.pointsScore} points**.`
       );
     } else {
       await message.channel.send(
-        `<@${authorId}> - Wordle game ${wordleIndex} already added.`
+        `<@${authorId}> - Wordle ${wordleIndex} already added.`
       );
 
       // const wordleMeta = await WordleMeta.findOne();
