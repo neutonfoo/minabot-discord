@@ -305,8 +305,12 @@ async function parseWordle(firstLine: string, message: Message) {
       );
 
       await message.channel.send(
-        `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} points). You now have **${player.pointsScore} points**.`
+        `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} points). You now have **${player.weeklyPointsScore} points** this week.`
       );
+
+      // await message.channel.send(
+      //   `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} points). You now have **${player.pointsScore} points**.`
+      // );
     } else {
       await message.channel.send(
         `<@${authorId}> - Wordle ${wordleIndex} already added.`
