@@ -147,15 +147,19 @@ async function cronWeeklyReset(client: Client): Promise<CronJob> {
         wordleMeta.save();
       }
 
+      const wordle_channel = client.channels.cache.get(
+        WORDLE_CHANNEL_ID!
+      ) as TextChannel;
+
+      let firstPlayer = await weeklyLeaderboard(wordle_channel);
+
+      wordle_channel.send(`Congrats to **${firstPlayer.name}**!`);
+
       const players = await Player.find();
       for (const player of players) {
         player.weeklyPointsScore = 0;
         player.save();
       }
-
-      weeklyLeaderboard(
-        client.channels.cache.get(WORDLE_CHANNEL_ID!) as TextChannel
-      );
     },
     null,
     false,
@@ -176,6 +180,7 @@ async function help(channel: TextChannel) {
 async function weeklyLeaderboard(channel: TextChannel) {
   // # Leaderboard
   const players = await Player.find().sort({ weeklyPointsScore: -1 });
+  let firstPlayer: IPlayer;
 
   if (players.length === 0) {
     await channel.send("No players yet.");
@@ -183,7 +188,6 @@ async function weeklyLeaderboard(channel: TextChannel) {
     let currentRank = 1;
     let playersInCurrentRank = 0;
     let previousWeeklyPointScore = 0;
-    let isFirstPlayer = true;
 
     await channel.send(
       `**Wordle Leaderboard**\n` +
@@ -191,12 +195,12 @@ async function weeklyLeaderboard(channel: TextChannel) {
           .map(player => {
             if (
               player.weeklyPointsScore < previousWeeklyPointScore ||
-              isFirstPlayer
+              firstPlayer
             ) {
               currentRank = currentRank + playersInCurrentRank;
               playersInCurrentRank = 1;
 
-              isFirstPlayer = false;
+              firstPlayer = player;
             } else if (player.weeklyPointsScore === previousWeeklyPointScore) {
               playersInCurrentRank++;
             }
@@ -214,6 +218,8 @@ async function weeklyLeaderboard(channel: TextChannel) {
           .join("\n")
     );
   }
+
+  return firstPlayer!;
 }
 
 async function leaderboard(channel: TextChannel) {
