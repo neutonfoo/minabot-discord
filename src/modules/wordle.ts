@@ -171,7 +171,7 @@ async function help(channel: TextChannel) {
 
 async function leaderboard(channel: TextChannel) {
   // # Leaderboard
-  const players = await Player.find().sort({ pointsScore: -1 });
+  const players = await Player.find().sort({ weeklyPointsScore: -1 });
 
   if (players.length === 0) {
     await channel.send("No players yet.");
@@ -278,8 +278,6 @@ async function adminRecalculatePoints(liveWordleIndex: number) {
     player.pointsScore = pointsScore;
     player.save();
   }
-
-  return 0;
 }
 
 async function parseWordle(firstLine: string, message: Message) {
