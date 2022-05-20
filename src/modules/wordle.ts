@@ -133,7 +133,7 @@ async function cronDailyIncrement(client: Client): Promise<CronJob> {
     },
     null,
     false,
-    "America/Los_Angeles"
+    "Pacific/Kiritimati"
   );
 }
 async function cronWeeklyReset(client: Client): Promise<CronJob> {
@@ -163,7 +163,7 @@ async function cronWeeklyReset(client: Client): Promise<CronJob> {
     },
     null,
     false,
-    "America/Los_Angeles"
+    "Pacific/Kiritimati"
   );
 }
 
