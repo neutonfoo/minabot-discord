@@ -1,7 +1,13 @@
 import { CronJob } from "cron";
 import { Client, Message, TextChannel } from "discord.js";
 import { connect } from "mongoose";
-import { Game, IPlayer, Player, WordleMeta } from "./wordle.model";
+import {
+  Game,
+  IPlayer,
+  NewPlayerBuilder,
+  Player,
+  WordleMeta,
+} from "./wordle.model";
 
 if (process.env.NODE_ENV !== "production") require("dotenv").config();
 
@@ -138,8 +144,8 @@ async function cronDailyIncrement(client: Client): Promise<CronJob> {
 }
 async function cronWeeklyReset(client: Client): Promise<CronJob> {
   return new CronJob(
-    // Every Monday
-    "0 0 0 * * 1",
+    // Every Tuesday (ie End of Monday in all timezones)
+    "0 0 0 * * 2",
     async function () {
       const wordleMeta = await WordleMeta.findOne();
       if (wordleMeta) {
@@ -158,6 +164,7 @@ async function cronWeeklyReset(client: Client): Promise<CronJob> {
       const players = await Player.find();
       for (const player of players) {
         player.weeklyPointsScore = 0;
+        player.weeklyGamesPlayed = 0;
         player.save();
       }
     },
@@ -195,12 +202,14 @@ async function weeklyLeaderboard(channel: TextChannel) {
           .map(player => {
             if (
               player.weeklyPointsScore < previousWeeklyPointScore ||
-              firstPlayer
+              !firstPlayer
             ) {
               currentRank = currentRank + playersInCurrentRank;
               playersInCurrentRank = 1;
 
-              firstPlayer = player;
+              if (!firstPlayer) {
+                firstPlayer = player;
+              }
             } else if (player.weeklyPointsScore === previousWeeklyPointScore) {
               playersInCurrentRank++;
             }
@@ -324,19 +333,16 @@ async function parseWordle(firstLine: string, message: Message) {
     const isHardMode = wordleResultMatches.groups!.isHardMode === "*";
     const attempts = wordleResultMatches.groups!.attempts;
 
+    const wordleMeta = await WordleMeta.findOne({});
+
     const player =
       (await Player.findOne({ id: authorId })) ||
-      new Player({
-        id: authorId,
-        name: authorName,
-        weeklyPointsScore: 0,
-        pointsScore: 0,
-        roundsScore: 0,
-        longestStreak: 0,
-        games: [],
-      });
+      NewPlayerBuilder(authorId, authorName);
 
-    if (!player.games.find(game => game.wordleIndex === wordleIndex)) {
+    if (
+      !player.games.find(game => game.wordleIndex === wordleIndex) &&
+      wordleMeta
+    ) {
       const game: Game = {
         wordleIndex: wordleIndex,
         isHardMode: isHardMode,
@@ -347,8 +353,14 @@ async function parseWordle(firstLine: string, message: Message) {
         scoring[game.attempts - 1] + (game.isHardMode ? scoringHardMode : 0);
 
       player.pointsScore += deltaPointsScore;
-      player.weeklyGamesPlayed += 1;
-      player.weeklyPointsScore += deltaPointsScore;
+
+      if (wordleIndex <= wordleMeta.weekStartWordleIndex + 6) {
+        // If Wordle game is within the week
+        // For timezone checks
+
+        player.weeklyGamesPlayed += 1;
+        player.weeklyPointsScore += deltaPointsScore;
+      }
 
       player.games.push(game);
 

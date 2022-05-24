@@ -6,6 +6,7 @@ export interface IPlayer {
   pointsScore: number;
   weeklyGamesPlayed: number;
   weeklyPointsScore: number;
+  nextWeeklyPointsScore: number;
   roundsScore: number;
   longestStreak: number;
   currentStreak: number;
@@ -25,6 +26,7 @@ const playerSchema = new Schema<IPlayer>({
   pointsScore: { type: Number },
   weeklyGamesPlayed: { type: Number },
   weeklyPointsScore: { type: Number },
+  nextWeeklyPointsScore: { type: Number },
   roundsScore: { type: Number },
   longestStreak: { type: Number },
   games: [
@@ -37,6 +39,19 @@ const playerSchema = new Schema<IPlayer>({
 });
 
 export const Player = model<IPlayer>("Player", playerSchema);
+
+export const NewPlayerBuilder = (authorId: string, authorName: string) =>
+  new Player({
+    id: authorId,
+    name: authorName,
+    weeklyGamesPlayed: 0,
+    weeklyPointsScore: 0,
+    nextWeeklyPointsScore: 0,
+    pointsScore: 0,
+    roundsScore: 0,
+    longestStreak: 0,
+    games: [],
+  });
 
 export interface IWordleMeta {
   currentWordleIndex: number;
