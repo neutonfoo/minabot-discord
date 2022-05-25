@@ -163,8 +163,16 @@ async function cronWeeklyReset(client: Client): Promise<CronJob> {
 
       const players = await Player.find();
       for (const player of players) {
-        player.weeklyPointsScore = 0;
-        player.weeklyGamesPlayed = 0;
+        // Set next week score (if no games played, set to 0 anyways)
+        player.weeklyPointsScore = player.nextWeeklyPointsScore;
+        player.nextWeeklyPointsScore = 0;
+
+        // If the next game exists, set to 1
+        player.weeklyGamesPlayed = player.games.filter(
+          game => game.wordleIndex === wordleMeta?.weekStartWordleIndex
+        )
+          ? 1
+          : 0;
         player.save();
       }
     },
@@ -360,6 +368,9 @@ async function parseWordle(firstLine: string, message: Message) {
 
         player.weeklyGamesPlayed += 1;
         player.weeklyPointsScore += deltaPointsScore;
+      } else if (wordleIndex > wordleMeta.weekStartWordleIndex + 6) {
+        // Else if the wordle index is next weeks (for people in the next timezone)
+        player.nextWeeklyPointsScore += deltaPointsScore;
       }
 
       player.games.push(game);
