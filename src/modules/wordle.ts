@@ -313,10 +313,12 @@ async function adminRecalculatePoints(liveWordleIndex: number) {
       if (wordleMeta) {
         if (
           game.wordleIndex >= wordleMeta.weekStartWordleIndex &&
-          game.wordleIndex <= wordleMeta.currentWordleIndex
+          game.wordleIndex <= wordleMeta.weekStartWordleIndex + 6
         ) {
           player.weeklyGamesPlayed += 1;
           player.weeklyPointsScore += gameScore;
+        } else if (game.wordleIndex > wordleMeta.weekStartWordleIndex + 6) {
+          player.nextWeeklyPointsScore += gameScore;
         }
       }
     }
