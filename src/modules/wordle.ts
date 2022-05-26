@@ -72,6 +72,7 @@ module.exports = {
         // await wordleMeta.save();
         (await cronDailyIncrement(client)).start();
         (await cronWeeklyReset(client)).start();
+        (await cronWeeklyReminder(client)).start();
       },
     },
     {
@@ -142,9 +143,62 @@ async function cronDailyIncrement(client: Client): Promise<CronJob> {
     "Pacific/Kiritimati"
   );
 }
+
+async function cronWeeklyReminder(client: Client): Promise<CronJob> {
+  return new CronJob(
+    // Every 12:00pm Monday (12 hours before reset)
+    "0 0 12 * * 1",
+    async function () {
+      const wordleMeta = await WordleMeta.findOne();
+
+      if (wordleMeta) {
+        const wordle_channel = client.channels.cache.get(
+          WORDLE_CHANNEL_ID!
+        ) as TextChannel;
+
+        let playerReminderMessages: string[] = [];
+
+        const players = await Player.find();
+        for (const player of players) {
+          let playerMissingGames: Number[] = [];
+
+          // Find all of this week's games
+          for (
+            let wordleIndex = wordleMeta.weekStartWordleIndex;
+            wordleIndex <= wordleMeta.weekStartWordleIndex + 6;
+            wordleIndex++
+          ) {
+            if (!player.games.find(game => game.wordleIndex === wordleIndex)) {
+              playerMissingGames.push(wordleIndex);
+            }
+          }
+
+          if (playerMissingGames.length > 0) {
+            playerReminderMessages.push(
+              `<@${player.id}> - Missing games(s) ${playerMissingGames.join(
+                ", "
+              )}.`
+            );
+          }
+        }
+
+        if (playerReminderMessages.length > 0) {
+          wordle_channel.send(
+            `**Wordle Weekly Reminder**\nYou have 12 hours to submit these missing games\n` +
+              playerReminderMessages.join("\n")
+          );
+        }
+      }
+    },
+    null,
+    false,
+    "Pacific/Kiritimati"
+  );
+}
+
 async function cronWeeklyReset(client: Client): Promise<CronJob> {
   return new CronJob(
-    // Every Tuesday (ie End of Monday in all timezones)
+    // Every start of Tuesday (ie End of Monday in all timezones)
     "0 0 0 * * 2",
     async function () {
       const wordleMeta = await WordleMeta.findOne();
