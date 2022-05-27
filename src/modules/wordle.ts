@@ -36,7 +36,7 @@ const scoring: number[] = [
 
 // # Wordle result match Regex
 const WORDLE_RESULT_REGEX =
-  /^Wordle (?<wordleIndex>\d+) (?<attempts>[X|1-6])\/6(?<isHardMode>\*?)$/;
+  /^(Wordle|Reactle) (?<wordleIndex>\d+) (?<attempts>[X|1-6])\/6(?<isHardMode>\*?)$/;
 
 // # Twice Reaction
 const twiceReactionEmojiIds = [
