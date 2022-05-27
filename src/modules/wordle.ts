@@ -133,7 +133,34 @@ async function cronDailyIncrement(client: Client): Promise<CronJob> {
     "0 0 0 * * *",
     async function () {
       const wordleMeta = await WordleMeta.findOne();
+
+      const missingPlayers: IPlayer[] = [];
+
       if (wordleMeta) {
+        const players = await Player.find();
+        for (const player of players) {
+          if (
+            !player.games.find(
+              game => game.wordleIndex === wordleMeta.currentWordleIndex
+            )
+          ) {
+            missingPlayers.push(player);
+          }
+        }
+
+        if (missingPlayers.length > 0) {
+          const wordle_channel = client.channels.cache.get(
+            WORDLE_CHANNEL_ID!
+          ) as TextChannel;
+
+          wordle_channel.send(
+            `**Wordle Reminder**\n` +
+              "Player(s) " +
+              missingPlayers.map(player => `<@${player.id}>`).join(", ") +
+              ` are missing game ${wordleMeta.currentWordleIndex}. Play in the archive [here](https://nf-wordle-archive.herokuapp.com/?${wordleMeta.currentWordleIndex}).`
+          );
+        }
+
         wordleMeta.currentWordleIndex += 1;
         wordleMeta.save();
       }
@@ -175,9 +202,12 @@ async function cronWeeklyReminder(client: Client): Promise<CronJob> {
 
           if (playerMissingGames.length > 0) {
             playerReminderMessages.push(
-              `<@${player.id}> - Missing games(s) ${playerMissingGames.join(
-                ", "
-              )}.`
+              `<@${player.id}> - Missing games(s) ${playerMissingGames
+                .map(
+                  wordleGameIndex =>
+                    `[${wordleGameIndex}](https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex})`
+                )
+                .join(", ")}.`
             );
           }
         }
