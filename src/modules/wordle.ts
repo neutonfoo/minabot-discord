@@ -206,7 +206,7 @@ async function cronWeeklyReminder(client: Client): Promise<CronJob> {
                 .map(wordleGameIndex =>
                   Formatters.hyperlink(
                     `${wordleGameIndex}`,
-                    "https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex}",
+                    `https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex}`,
                     `${wordleGameIndex}`
                   )
                 )
