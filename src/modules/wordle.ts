@@ -201,12 +201,12 @@ async function cronWeeklyReminder(client: Client): Promise<CronJob> {
 
           if (playerMissingGames.length > 0) {
             playerReminderMessages.push(
-              `<@${player.id}> - Missing games(s) ${playerMissingGames
+              `<@${player.id}> - ${playerMissingGames
                 .map(wordleGameIndex =>
                   Formatters.hyperlink(
-                    `${wordleGameIndex}`,
+                    `Wordle ${wordleGameIndex}`,
                     `https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex}`,
-                    `${wordleGameIndex}`
+                    `Wordle ${wordleGameIndex}`
                   )
                 )
                 .join(", ")}.`
@@ -216,7 +216,7 @@ async function cronWeeklyReminder(client: Client): Promise<CronJob> {
 
         if (playerReminderMessages.length > 0) {
           wordle_channel.send(
-            `**Wordle Weekly Reminder**\nYou have 12 hours to submit these missing games\n` +
+            `**Wordle Weekly Reminder**\nYou have 12 hours to submit these missing games.\n` +
               playerReminderMessages.join("\n")
           );
         }
