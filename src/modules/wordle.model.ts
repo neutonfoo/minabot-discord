@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 
 export interface IPlayer {
-  id: number;
+  id: string;
   name: string;
   pointsScore: number;
   weeklyGamesPlayed: number;
@@ -21,7 +21,7 @@ export interface Game {
 }
 
 const playerSchema = new Schema<IPlayer>({
-  id: { type: Number, required: true },
+  id: { type: String, required: true },
   name: { type: String, required: true },
   pointsScore: { type: Number },
   weeklyGamesPlayed: { type: Number },
