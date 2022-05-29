@@ -157,7 +157,7 @@ async function cronDailyIncrement(client: Client): Promise<CronJob> {
             `**Wordle Reminder**\n` +
               "Player(s) " +
               missingPlayers.map(player => `<@${player.id}>`).join(", ") +
-              ` are missing game ${wordleMeta.currentWordleIndex}. Play in the archive [here](https://nf-wordle-archive.herokuapp.com/?${wordleMeta.currentWordleIndex}).`
+              ` missing Wordle ${wordleMeta.currentWordleIndex}. Play in the archive here: https://nf-wordle-archive.herokuapp.com/?${wordleMeta.currentWordleIndex}.`
           );
         }
 
