@@ -1,5 +1,5 @@
 import { CronJob } from "cron";
-import { Client, Message, TextChannel } from "discord.js";
+import { Client, Formatters, Message, TextChannel } from "discord.js";
 import { connect } from "mongoose";
 import {
   Game,
@@ -203,9 +203,12 @@ async function cronWeeklyReminder(client: Client): Promise<CronJob> {
           if (playerMissingGames.length > 0) {
             playerReminderMessages.push(
               `<@${player.id}> - Missing games(s) ${playerMissingGames
-                .map(
-                  wordleGameIndex =>
-                    `[${wordleGameIndex}](https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex})`
+                .map(wordleGameIndex =>
+                  Formatters.hyperlink(
+                    `${wordleGameIndex}`,
+                    "https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex}",
+                    `${wordleGameIndex}`
+                  )
                 )
                 .join(", ")}.`
             );
