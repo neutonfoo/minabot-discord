@@ -246,16 +246,13 @@ async function cronWeeklyReset(client: Client): Promise<CronJob> {
 
       const players = await Player.find();
       for (const player of players) {
+        // If the next game exists, set to 1
+        player.weeklyGamesPlayed = player.nextWeeklyPointsScore > 0 ? 1 : 0;
+
         // Set next week score (if no games played, set to 0 anyways)
         player.weeklyPointsScore = player.nextWeeklyPointsScore;
         player.nextWeeklyPointsScore = 0;
 
-        // If the next game exists, set to 1
-        player.weeklyGamesPlayed = player.games.filter(
-          game => game.wordleIndex === wordleMeta?.weekStartWordleIndex
-        )
-          ? 1
-          : 0;
         player.save();
       }
     },
@@ -453,9 +450,21 @@ async function parseWordle(firstLine: string, message: Message) {
 
         player.weeklyGamesPlayed += 1;
         player.weeklyPointsScore += deltaPointsScore;
+
+        await message.channel.send(
+          `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} point${
+            deltaPointsScore === 1 ? "" : "s"
+          }). You now have **${player.weeklyPointsScore} points** this week.`
+        );
       } else if (wordleIndex > wordleMeta.weekStartWordleIndex + 6) {
         // Else if the wordle index is next weeks (for people in the next timezone)
         player.nextWeeklyPointsScore += deltaPointsScore;
+
+        await message.channel.send(
+          `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} point${
+            deltaPointsScore === 1 ? "" : "s"
+          }). You now have **${player.weeklyPointsScore} points** this week.`
+        );
       }
 
       player.games.push(game);
@@ -466,12 +475,6 @@ async function parseWordle(firstLine: string, message: Message) {
         twiceReactionEmojiIds[
           Math.floor(Math.random() * twiceReactionEmojiIds.length)
         ]
-      );
-
-      await message.channel.send(
-        `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} point${
-          deltaPointsScore === 1 ? "" : "s"
-        }). You now have **${player.weeklyPointsScore} points** this week.`
       );
 
       // await message.channel.send(
