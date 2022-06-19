@@ -70,6 +70,7 @@ module.exports = {
         //   streaks: [],
         // });
         // await wordleMeta.save();
+
         (await cronDailyIncrement(client)).start();
         (await cronWeeklyReset(client)).start();
         (await cronWeeklyReminder(client)).start();
@@ -134,31 +135,31 @@ async function cronDailyIncrement(client: Client): Promise<CronJob> {
     async function () {
       const wordleMeta = await WordleMeta.findOne();
 
-      const missingPlayers: IPlayer[] = [];
+      // const missingPlayers: IPlayer[] = [];
 
       if (wordleMeta) {
-        const players = await Player.find();
-        for (const player of players) {
-          if (
-            !player.games.find(
-              game => game.wordleIndex === wordleMeta.currentWordleIndex
-            )
-          ) {
-            missingPlayers.push(player);
-          }
-        }
+        // const players = await Player.find();
+        // for (const player of players) {
+        //   if (
+        //     !player.games.find(
+        //       (game) => game.wordleIndex === wordleMeta.currentWordleIndex
+        //     )
+        //   ) {
+        //     missingPlayers.push(player);
+        //   }
+        // }
 
-        if (missingPlayers.length > 0) {
-          const wordle_channel = client.channels.cache.get(
-            WORDLE_CHANNEL_ID!
-          ) as TextChannel;
+        // if (missingPlayers.length > 0) {
+        //   const wordle_channel = client.channels.cache.get(
+        //     WORDLE_CHANNEL_ID!
+        //   ) as TextChannel;
 
-          wordle_channel.send(
-            `**Wordle Reminder**\n` +
-              missingPlayers.map(player => `<@${player.id}>`).join(", ") +
-              ` missing Wordle ${wordleMeta.currentWordleIndex}. Play in the archive here: https://nf-wordle-archive.herokuapp.com/?${wordleMeta.currentWordleIndex}.`
-          );
-        }
+        //   wordle_channel.send(
+        //     `**Wordle Reminder**\n` +
+        //       missingPlayers.map((player) => `<@${player.id}>`).join(", ") +
+        //       ` missing Wordle ${wordleMeta.currentWordleIndex}. Play in the archive here: https://nf-wordle-archive.herokuapp.com/?${wordleMeta.currentWordleIndex}.`
+        //   );
+        // }
 
         wordleMeta.currentWordleIndex += 1;
         wordleMeta.save();
@@ -206,7 +207,7 @@ async function cronWeeklyReminder(client: Client): Promise<CronJob> {
                   wordleGameIndex =>
                     `Wordle ${wordleGameIndex} - https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex}`
                 )
-                .join("\n")}.`
+                .join("\n")}`
             );
           }
         }
@@ -227,8 +228,8 @@ async function cronWeeklyReminder(client: Client): Promise<CronJob> {
 
 async function cronWeeklyReset(client: Client): Promise<CronJob> {
   return new CronJob(
-    // Every start of Tuesday (ie End of Monday in all timezones)
-    "0 0 0 * * 2",
+    // At 23:59:30 on global Monday nights (just before Tuesday on the earliest timezone)
+    "30 59 23 * * 1",
     async function () {
       const wordleMeta = await WordleMeta.findOne();
       if (wordleMeta) {
@@ -463,7 +464,11 @@ async function parseWordle(firstLine: string, message: Message) {
         await message.channel.send(
           `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} point${
             deltaPointsScore === 1 ? "" : "s"
-          }). You now have **${player.weeklyPointsScore} points** this week.`
+          }). You now have **${
+            player.nextWeeklyPointsScore
+          } points** for the next week. You have **${
+            player.weeklyPointsScore
+          } points** this week.`
         );
       }
 
