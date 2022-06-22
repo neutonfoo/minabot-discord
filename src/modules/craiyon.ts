@@ -2,6 +2,8 @@ import { Message } from "discord.js";
 
 import * as puppeteer from "puppeteer";
 
+import CryptoJS from "crypto-js";
+
 const prefix = "!gen ";
 const savedImagePrefix = "craiyon_";
 
@@ -47,7 +49,7 @@ module.exports = {
               timeout: 0,
             });
 
-            const savedImagePath = `${savedImagePrefix}${encodeURIComponent(
+            const savedImagePath = `${savedImagePrefix}${CryptoJS.MD5(
               generationQuery
             )}.png`;
 
@@ -60,7 +62,7 @@ module.exports = {
             const secondsElapsed = (performance.now() - startTime) / 1000;
 
             await generatedImageMessage.edit({
-              content: `Generating \`${generationQuery}\` on craiyon... Completed in ${secondsElapsed.toFixed(
+              content: `Generating \`${generationQuery}\` on Craiyon... Completed in ${secondsElapsed.toFixed(
                 3
               )} seconds!`,
               files: [
