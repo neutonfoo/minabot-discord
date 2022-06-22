@@ -205,7 +205,7 @@ async function cronWeeklyReminder(client: Client): Promise<CronJob> {
               `<@${player.id}>\n${playerMissingGames
                 .map(
                   wordleGameIndex =>
-                    `Wordle ${wordleGameIndex} - https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex}`
+                    `Wordle ${wordleGameIndex} - <https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex}>`
                 )
                 .join("\n")}`
             );
