@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 
-const puppeteer = require("puppeteer");
+import * as puppeteer from "puppeteer";
 
 const prefix = "!gen ";
 const savedImagePrefix = "craiyon_";
@@ -21,7 +21,7 @@ module.exports = {
           const generationQuery = content.substring(content.indexOf(" ") + 1);
 
           if (generationQuery) {
-            const generatedImageMessage = await message.channel.send(
+            const generatedImageMessage = await message.reply(
               `Generating \`${generationQuery}\` on craiyon...`
             );
 
@@ -40,7 +40,7 @@ module.exports = {
               delay: 100,
             });
 
-            await page.$eval("button", (el: HTMLElement) => el.click());
+            await page.$eval("button", node => (node as HTMLElement).click());
 
             await page.waitForSelector("div.wrapper", {
               hidden: true,
@@ -51,7 +51,7 @@ module.exports = {
               generationQuery
             )}.png`;
 
-            await appElement.screenshot({
+            await appElement!.screenshot({
               path: savedImagePath,
             });
 

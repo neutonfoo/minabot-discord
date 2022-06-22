@@ -49,6 +49,13 @@
   resolved "https://registry.npmjs.org/@types/node/-/node-17.0.23.tgz"
   integrity sha512-UxDxWn7dl97rKVeVS61vErvw086aCYhDLyvRQZ5Rk65rZKepaFdm53GeqXaKBuOhED4e9uWq34IC3TdSdJJ2Gw==
 
+"@types/puppeteer@^5.4.6":
+  version "5.4.6"
+  resolved "https://registry.yarnpkg.com/@types/puppeteer/-/puppeteer-5.4.6.tgz#afc438e41dcbc27ca1ba0235ea464a372db2b21c"
+  integrity sha512-98Kghehs7+/GD9b56qryhqdqVCXUTbetTv3PlvDnmFRTHQH0j9DIp1f7rkAW3BAj4U3yoeSEQnKgdW8bDq0Y0Q==
+  dependencies:
+    "@types/node" "*"
+
 "@types/strip-bom@^3.0.0":
   version "3.0.0"
   resolved "https://registry.npmjs.org/@types/strip-bom/-/strip-bom-3.0.0.tgz"
