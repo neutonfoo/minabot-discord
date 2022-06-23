@@ -62,7 +62,7 @@ module.exports = {
             const secondsElapsed = (performance.now() - startTime) / 1000;
 
             await generatedImageMessage.edit({
-              content: `Generating \`${generationQuery}\` on Craiyon... Completed in ${secondsElapsed.toFixed(
+              content: `Generating \`${generationQuery}\` on craiyon... Completed in ${secondsElapsed.toFixed(
                 3
               )} seconds!`,
               files: [
