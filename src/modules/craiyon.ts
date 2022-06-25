@@ -38,7 +38,7 @@ module.exports = {
 
             const appElement = await page.$("#app");
 
-            await page.type("input#prompt", generationQuery, {
+            await page.type("div#prompt", generationQuery, {
               delay: 100,
             });
 
