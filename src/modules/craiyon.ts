@@ -20,7 +20,9 @@ module.exports = {
         // const authorId = message.author.id;
 
         if (content.startsWith(prefix)) {
-          const generationQuery = content.substring(content.indexOf(" ") + 1);
+          const generationQuery = content
+            .substring(content.indexOf(" ") + 1)
+            .trim();
 
           if (generationQuery) {
             const generatedImageMessage = await message.reply(
