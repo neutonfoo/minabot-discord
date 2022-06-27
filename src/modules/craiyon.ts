@@ -16,8 +16,6 @@ module.exports = {
 
         // Get message info
         const content = message.content;
-        // const channelId = message.channelId;
-        // const authorId = message.author.id;
 
         if (content.startsWith(prefix)) {
           const generationQuery = content
@@ -25,9 +23,7 @@ module.exports = {
             .trim();
 
           if (generationQuery) {
-            const generatedImageMessage = await message.reply(
-              `Generating \`${generationQuery}\` on craiyon...`
-            );
+            await message.react("🐧");
 
             const startTime = performance.now();
 
@@ -63,8 +59,10 @@ module.exports = {
 
             const secondsElapsed = (performance.now() - startTime) / 1000;
 
-            await generatedImageMessage.edit({
-              content: `Generating \`${generationQuery}\` on craiyon... Completed in ${secondsElapsed.toFixed(
+            await message.react("☑");
+
+            await message.reply({
+              content: `\`${generationQuery}\` on craiyon completed in ${secondsElapsed.toFixed(
                 3
               )} seconds!`,
               files: [
