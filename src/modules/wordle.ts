@@ -36,7 +36,7 @@ const scoring: number[] = [
 
 // # Wordle result match Regex
 const WORDLE_RESULT_REGEX =
-  /^(Wordle|Reactle) (?<wordleIndex>\d+) (?<attempts>[X|1-6])\/6(?<isHardMode>\*?)$/;
+  /^(Wordle|Minactle) (?<wordleIndex>\d+) (?<attempts>[X|1-6])\/6(?<isHardMode>\*?)$/;
 
 // # Twice Reaction
 const twiceReactionEmojiIds = [
@@ -205,7 +205,7 @@ async function cronWeeklyReminder(client: Client): Promise<CronJob> {
               `<@${player.id}>\n${playerMissingGames
                 .map(
                   wordleGameIndex =>
-                    `Wordle ${wordleGameIndex} - <https://nf-wordle-archive.herokuapp.com/?${wordleGameIndex}>`
+                    `Wordle ${wordleGameIndex} - <https://minactle.herokuapp.com/?${wordleGameIndex}>`
                 )
                 .join("\n")}`
             );
@@ -286,7 +286,7 @@ async function weeklyLeaderboard(channel: TextChannel) {
     let previousWeeklyPointScore = 0;
 
     await channel.send(
-      `**Wordle Leaderboard**\n` +
+      `**Wordle Weekly Leaderboard**\n` +
         players
           .map(player => {
             if (
