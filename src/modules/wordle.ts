@@ -441,12 +441,18 @@ async function parseWordle(firstLine: string, message: Message) {
       };
 
       // If attempts is "X", score 0 points
-      const deltaPointsScore = attempts === "X" ? 0 :
-        scoring[game.attempts - 1] + (game.isHardMode ? scoringHardMode : 0);
+      const deltaPointsScore =
+        attempts === "X"
+          ? 0
+          : scoring[game.attempts - 1] +
+            (game.isHardMode ? scoringHardMode : 0);
 
       player.pointsScore += deltaPointsScore;
 
-      if (wordleIndex <= wordleMeta.weekStartWordleIndex + 6) {
+      if (
+        wordleIndex >= wordleMeta.weekStartWordleIndex &&
+        wordleIndex <= wordleMeta.weekStartWordleIndex + 6
+      ) {
         // If Wordle game is within the week
         // For timezone checks
 
