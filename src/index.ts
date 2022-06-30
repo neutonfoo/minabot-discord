@@ -6,6 +6,7 @@ const DISCORD_BOT_MODULES = [
   "./modules/ping",
   "./modules/wordle",
   "./modules/craiyon",
+  "./modules/twice-listening",
   // "./modules/danamic-alerter",
 ];
 
