@@ -526,11 +526,6 @@ async function checkRounds(currentWordleIndex: number) {
   // }
 }
 async function missingUserGames(message: Message<boolean>) {
-  if (message.author.id === "305483990742073344") {
-    message.reply("no");
-    return;
-  }
-
   const wordleMeta = await WordleMeta.findOne();
 
   if (wordleMeta) {
