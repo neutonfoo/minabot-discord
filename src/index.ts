@@ -3,10 +3,11 @@ import { Client, Intents, TextChannel } from "discord.js";
 if (process.env.NODE_ENV !== "production") require("dotenv").config();
 
 const DISCORD_BOT_MODULES = [
-  "./modules/ping",
+  // "./modules/ping",
   "./modules/wordle",
   "./modules/craiyon",
   "./modules/twice-listening",
+  "./modules/youtube-dl",
   // "./modules/danamic-alerter",
 ];
 
