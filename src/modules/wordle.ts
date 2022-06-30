@@ -440,7 +440,8 @@ async function parseWordle(firstLine: string, message: Message) {
         attempts: attempts === "X" ? 7 : Number.parseInt(attempts),
       };
 
-      const deltaPointsScore =
+      // If attempts is "X", score 0 points
+      const deltaPointsScore = attempts === "X" ? 0 :
         scoring[game.attempts - 1] + (game.isHardMode ? scoringHardMode : 0);
 
       player.pointsScore += deltaPointsScore;
