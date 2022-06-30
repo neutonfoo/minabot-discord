@@ -20,7 +20,7 @@ module.exports = {
 
           const youtubeVideoUrl = commandParts[0];
 
-          const savedVideoPath = `${savedVideoPrefix}${CryptoJS.MD5(
+          const savedVideoPath = `~/${savedVideoPrefix}${CryptoJS.MD5(
             youtubeVideoUrl
           )}.mp4`;
 
