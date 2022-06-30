@@ -88,7 +88,9 @@ module.exports = {
         // const authorName = message.author.username;
 
         // Global commands
-        if (content.startsWith(prefix)) {
+        if (content === "MINA TELL ME MY GAMES") {
+          await missingUserGames(message);
+        } else if (content.startsWith(prefix)) {
           const commandParts = content.substring(prefix.length).split(" ");
 
           if (commandParts[0] === "h" || commandParts[0] === "help") {
@@ -103,7 +105,6 @@ module.exports = {
             commandParts[0] === "leaderboardTotal"
           ) {
             await leaderboard(message.channel as TextChannel);
-          } else if (commandParts[0] === "s" || commandParts[0] === "stats") {
           }
 
           // # Admin Commands
@@ -523,4 +524,38 @@ async function checkRounds(currentWordleIndex: number) {
   // for (const player of streakPlayers) {
   //   player.currentStreak++;
   // }
+}
+async function missingUserGames(message: Message<boolean>) {
+  const wordleMeta = await WordleMeta.findOne();
+
+  if (wordleMeta) {
+    let playerReminderMessage = "";
+
+    const player = await Player.findOne({ id: message.author.id });
+    let playerMissingGames: Number[] = [];
+
+    if (player) {
+      // Find all of this week's games
+      for (
+        let wordleIndex = wordleMeta.weekStartWordleIndex;
+        wordleIndex <= wordleMeta.weekStartWordleIndex + 6;
+        wordleIndex++
+      ) {
+        if (!player.games.find(game => game.wordleIndex === wordleIndex)) {
+          playerMissingGames.push(wordleIndex);
+        }
+      }
+
+      if (playerMissingGames.length > 0) {
+        message.reply(
+          `**Wordle Weekly Missing Games**\nYou are currently missing the following games this week.\n${playerMissingGames
+            .map(
+              wordleGameIndex =>
+                `Wordle ${wordleGameIndex} - <https://minactle.herokuapp.com/?${wordleGameIndex}>`
+            )
+            .join("\n")}`
+        );
+      }
+    }
+  }
 }
