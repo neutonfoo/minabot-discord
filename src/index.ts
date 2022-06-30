@@ -7,7 +7,7 @@ const DISCORD_BOT_MODULES = [
   "./modules/wordle",
   "./modules/craiyon",
   "./modules/twice-listening",
-  "./modules/youtube-dl",
+  // "./modules/youtube-dl",
   // "./modules/danamic-alerter",
 ];
 
