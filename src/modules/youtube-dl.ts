@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 
+import CryptoJS from "crypto-js";
 import youtubeDlExec from "youtube-dl-exec";
 
 const prefix = "!dl ";
