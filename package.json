@@ -9,6 +9,7 @@
     "dev": "ts-node-dev --respawn --clear src/index.ts",
     "build": "tsc",
     "postinstall": "tsc",
+    "prestart": "tsc",
     "start": "node ."
   },
   "devDependencies": {

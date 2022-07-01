@@ -105,6 +105,8 @@ module.exports = {
             commandParts[0] === "leaderboardTotal"
           ) {
             await leaderboard(message.channel as TextChannel);
+          } else if (commandParts[0] === "m") {
+            await missingUserGames(message);
           }
 
           // # Admin Commands
@@ -450,6 +452,8 @@ async function parseWordle(firstLine: string, message: Message) {
 
       player.pointsScore += deltaPointsScore;
 
+      player.games.push(game);
+
       if (
         wordleIndex >= wordleMeta.weekStartWordleIndex &&
         wordleIndex <= wordleMeta.weekStartWordleIndex + 6
@@ -478,9 +482,15 @@ async function parseWordle(firstLine: string, message: Message) {
             player.weeklyPointsScore
           } points** this week.`
         );
+      } else {
+        await message.channel.send(
+          `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} points). You now have **${
+            player.pointsScore
+          } points** over ${player.games.length} game${
+            player.games.length === 1 ? "" : "s"
+          }.`
+        );
       }
-
-      player.games.push(game);
 
       await player.save();
 
@@ -489,10 +499,6 @@ async function parseWordle(firstLine: string, message: Message) {
           Math.floor(Math.random() * twiceReactionEmojiIds.length)
         ]
       );
-
-      // await message.channel.send(
-      //   `<@${authorId}> - Wordle ${wordleIndex} added (+${deltaPointsScore} points). You now have **${player.pointsScore} points**.`
-      // );
     } else {
       await message.channel.send(
         `<@${authorId}> - Wordle ${wordleIndex} already added.`
@@ -525,12 +531,11 @@ async function checkRounds(currentWordleIndex: number) {
   //   player.currentStreak++;
   // }
 }
+
 async function missingUserGames(message: Message<boolean>) {
   const wordleMeta = await WordleMeta.findOne();
 
   if (wordleMeta) {
-    let playerReminderMessage = "";
-
     const player = await Player.findOne({ id: message.author.id });
     let playerMissingGames: Number[] = [];
 
