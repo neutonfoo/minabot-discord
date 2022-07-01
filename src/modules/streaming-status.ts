@@ -35,7 +35,7 @@ module.exports = {
         // streaming_status_channel.send(`${JSON.stringify(newMember)}`);
         console.log(newPresence);
         streaming_status_channel.send(
-          `<@${newPresence.userId}> - ${newPresence.status}`
+          `${newPresence.userId} - ${newPresence.status}`
         );
         // console.log(newPresence.userId);
       },
