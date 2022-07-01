@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { GuildMember, Message, User } from "discord.js";
 
 // # Twice Reaction
 const twiceReactionEmojiIds = [
@@ -25,16 +25,6 @@ module.exports = {
         // const channelId = message.channelId;
         // const authorId = message.author.id;
         // const authorName = message.author.username;
-
-        // if (channelId === "950951957575655504") {
-        //   if (Math.random() < 0.25) {
-        //     message.react(
-        //       twiceReactionEmojiIds[
-        //         Math.floor(Math.random() * twiceReactionEmojiIds.length)
-        //       ]
-        //     );
-        //   }
-        // }
       },
     },
   ],

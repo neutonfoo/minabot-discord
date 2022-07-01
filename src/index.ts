@@ -7,6 +7,7 @@ const DISCORD_BOT_MODULES = [
   "./modules/wordle",
   "./modules/craiyon",
   "./modules/twice-listening",
+  "./modules/streaming-status",
   // "./modules/youtube-dl",
   // "./modules/danamic-alerter",
 ];
@@ -14,7 +15,11 @@ const DISCORD_BOT_MODULES = [
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
 const client: Client = new Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_PRESENCES,
+  ],
 });
 
 client.on("ready", () => {
