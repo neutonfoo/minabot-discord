@@ -47,7 +47,12 @@ module.exports = {
               timeout: 0,
             });
 
-            const savedImagePath = `${savedImagePrefix}${CryptoJS.MD5(
+            // Close Ad
+            await page.$eval("span.mmt-sticky-close", node =>
+              (node as HTMLElement).click()
+            );
+
+            const savedImagePath = `tmp/${savedImagePrefix}${CryptoJS.MD5(
               generationQuery
             )}.png`;
 
