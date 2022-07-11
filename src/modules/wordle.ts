@@ -32,7 +32,7 @@ const MONGODB_CONNECTION = `${MONGODB_URI}/wordleTracker?retryWrites=true&w=majo
 const WORDLE_RESULT_REGEX =
   /^(Wordle|Minactle) (?<wordleIndex>\d+) (?<attempts>[X|1-6])\/6(?<isHardMode>\*?)$/;
 
-const scoringHardMode = 1;
+const scoringHardMode = 0;
 const scoring: number[] = [
   6, // 1 Attempt
   5, // 2 Attempts
