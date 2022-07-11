@@ -1,6 +1,8 @@
 import { CronJob } from "cron";
-import { Client, Message, ActivityType } from "discord.js";
+import { Client } from "discord.js";
 import { ActivityTypes } from "discord.js/typings/enums";
+
+import { IBotCommand, IBotEvent, IBotModule } from "../interfaces/BotModule";
 
 // # Twice Reaction
 const twiceSongs = [
@@ -139,16 +141,19 @@ const twiceSongs = [
   "Cry For Me",
 ];
 
-module.exports = {
-  events: [
-    {
-      name: "ready",
-      async execute(client: Client) {
-        (await cronTwiceSongPicker(client)).start();
-      },
+const BOT_MODULE_NAME = "Twice Listening";
+const BOT_MODULE_COMMAND_NAME = null;
+
+const COMMANDS: IBotCommand[] = [];
+
+const EVENTS: IBotEvent[] = [
+  {
+    event_name: "ready",
+    execute: async (client: Client) => {
+      (await cronTwiceSongPicker(client)).start();
     },
-  ],
-};
+  },
+];
 
 async function cronTwiceSongPicker(client: Client): Promise<CronJob> {
   return new CronJob(
@@ -167,3 +172,9 @@ async function cronTwiceSongPicker(client: Client): Promise<CronJob> {
     "Pacific/Kiritimati"
   );
 }
+
+module.exports = {
+  bot_module_name: BOT_MODULE_NAME,
+  commands: COMMANDS,
+  events: EVENTS,
+} as IBotModule;

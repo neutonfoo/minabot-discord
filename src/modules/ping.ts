@@ -1,31 +1,40 @@
-import { GuildMember, Message, User } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { Client, Message } from "discord.js";
 
-// # Twice Reaction
-const twiceReactionEmojiIds = [
-  "812417222583517234",
-  "813175312245850113",
-  "813175312602628106",
-  "813175312795828225",
-  "813178058394566668",
-  "813175312552689674",
-  "813175312246243359",
-  "813175311813836801",
-  "813175312766468136",
+import { IBotCommand, IBotEvent, IBotModule } from "../interfaces/BotModule";
+
+const BOT_MODULE_NAME = "Ping";
+const BOT_MODULE_COMMAND_NAME = "ping";
+
+const COMMANDS: IBotCommand[] = [
+  {
+    data: new SlashCommandBuilder()
+      .setName(BOT_MODULE_COMMAND_NAME)
+      .setDescription(`[${BOT_MODULE_NAME}] Replies with pong!`),
+    execute: async interaction => {
+      await interaction.reply("Pong!");
+    },
+  },
+];
+
+const EVENTS: IBotEvent[] = [
+  {
+    event_name: "ready",
+    execute: async (client: Client) => {
+      // Test
+    },
+  },
+  {
+    event_name: "messageCreate",
+    execute: async (message: Message) => {
+      // Test
+      if (message.author.bot) return false;
+    },
+  },
 ];
 
 module.exports = {
-  events: [
-    {
-      name: "messageCreate",
-      execute(message: Message) {
-        if (message.author.bot) return false;
-
-        // Get message info
-        // const content = message.content;
-        // const channelId = message.channelId;
-        // const authorId = message.author.id;
-        // const authorName = message.author.username;
-      },
-    },
-  ],
-};
+  bot_module_name: BOT_MODULE_NAME,
+  commands: COMMANDS,
+  events: EVENTS,
+} as IBotModule;

@@ -6,29 +6,25 @@
   "author": "Neuton Foo <neuton.foo@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node-dev --respawn --clear src/index.ts",
     "build": "tsc",
-    "postinstall": "tsc",
-    "prestart": "tsc",
-    "start": "node ."
-  },
-  "devDependencies": {
-    "@types/cron": "^1.7.3",
-    "@types/crypto-js": "^4.1.1",
-    "@types/puppeteer": "^5.4.6",
-    "dotenv": "^16.0.0",
-    "ts-node-dev": "^1.1.8",
-    "typescript": "^4.6.3"
+    "start": "node .",
+    "dev": "ts-node-dev --respawn src/index.ts"
   },
   "dependencies": {
     "cron": "^2.0.0",
     "crypto-js": "^4.1.1",
-    "discord-api-types": "^0.31.0",
-    "discord.js": "^13.6.0",
-    "mongoose": "^6.2.10",
-    "puppeteer": "^14.4.1"
+    "discord.js": "^13.8.1",
+    "mongoose": "^6.4.4",
+    "puppeteer": "^15.3.2"
   },
-  "engines": {
-    "node": "16.x"
+  "devDependencies": {
+    "@discordjs/builders": "^0.15.0",
+    "@discordjs/rest": "^0.5.0",
+    "@types/cron": "^2.0.0",
+    "@types/crypto-js": "^4.1.1",
+    "discord-api-types": "^0.36.1",
+    "dotenv": "^16.0.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.7.4"
   }
 }

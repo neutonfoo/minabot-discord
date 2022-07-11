@@ -1,86 +1,90 @@
-import { Message } from "discord.js";
-
+import { SlashCommandBuilder } from "@discordjs/builders";
 import * as puppeteer from "puppeteer";
 
-import CryptoJS from "crypto-js";
+import { IBotCommand, IBotEvent, IBotModule } from "../interfaces/BotModule";
+import { MD5Hash, tmpDirectory } from "../util";
 
-const prefix = "!gen ";
+const BOT_MODULE_NAME = "Craiyon";
+const BOT_MODULE_COMMAND_NAME = "craiyon";
+
 const savedImagePrefix = "craiyon_";
 
-module.exports = {
-  events: [
-    {
-      name: "messageCreate",
-      async execute(message: Message) {
-        if (message.author.bot) return false;
+const COMMANDS: IBotCommand[] = [
+  {
+    data: new SlashCommandBuilder()
+      .setName(BOT_MODULE_COMMAND_NAME)
+      .setDescription(`[${BOT_MODULE_NAME}] Generate an image with Craiyon!`)
+      .addStringOption(option =>
+        option
+          .setName("prompt")
+          .setDescription("The prompt to generate")
+          .setRequired(true)
+      ),
 
-        // Get message info
-        const content = message.content;
+    execute: async interaction => {
+      const optionPrompt = interaction.options.getString("prompt", true).trim();
 
-        if (content.startsWith(prefix)) {
-          const generationQuery = content
-            .substring(content.indexOf(" ") + 1)
-            .trim();
+      await interaction.reply(`🤖✏️ \`${optionPrompt}\``);
 
-          if (generationQuery) {
-            await message.react("🐧");
+      const startTime = performance.now();
 
-            const startTime = performance.now();
+      const browser = await puppeteer.launch({
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+      const page = await browser.newPage();
+      await page.goto("https://www.craiyon.com/");
+      await page.waitForNetworkIdle();
 
-            const browser = await puppeteer.launch({
-              args: ["--no-sandbox", "--disable-setuid-sandbox"],
-            });
-            const page = await browser.newPage();
-            await page.goto("https://www.craiyon.com/");
-            await page.waitForNetworkIdle();
+      const appElement = await page.$("#app");
 
-            const appElement = await page.$("#app");
+      await page.type("div#prompt", optionPrompt, {
+        delay: 100,
+      });
 
-            await page.type("div#prompt", generationQuery, {
-              delay: 100,
-            });
+      await page.$eval("button", node => (node as HTMLElement).click());
 
-            await page.$eval("button", node => (node as HTMLElement).click());
+      await page.waitForSelector("div.wrapper", {
+        hidden: true,
+        timeout: 0,
+      });
 
-            await page.waitForSelector("div.wrapper", {
-              hidden: true,
-              timeout: 0,
-            });
+      // Close Ad
+      await page.$eval("span.mmt-sticky-close", node =>
+        (node as HTMLElement).click()
+      );
 
-            // Close Ad
-            await page.$eval("span.mmt-sticky-close", node =>
-              (node as HTMLElement).click()
-            );
+      const savedImagePath = `${tmpDirectory}/${savedImagePrefix}${MD5Hash(
+        optionPrompt
+      )}.png`;
 
-            const savedImagePath = `tmp/${savedImagePrefix}${CryptoJS.MD5(
-              generationQuery
-            )}.png`;
+      await appElement!.screenshot({
+        path: savedImagePath,
+      });
 
-            await appElement!.screenshot({
-              path: savedImagePath,
-            });
+      await browser.close();
 
-            await browser.close();
+      const secondsElapsed = (performance.now() - startTime) / 1000;
 
-            const secondsElapsed = (performance.now() - startTime) / 1000;
-
-            await message.react("☑");
-
-            await message.reply({
-              content: `\`${generationQuery}\` on craiyon completed in ${secondsElapsed.toFixed(
-                3
-              )} seconds!`,
-              files: [
-                {
-                  attachment: savedImagePath,
-                  name: savedImagePath,
-                  description: `Generated image of ${generationQuery}`,
-                },
-              ],
-            });
-          }
-        }
-      },
+      await interaction.channel?.send({
+        content: `\`${optionPrompt}\` on craiyon completed in ${secondsElapsed.toFixed(
+          3
+        )} seconds! - <@${interaction.member?.user.id}>`,
+        files: [
+          {
+            attachment: savedImagePath,
+            name: savedImagePath,
+            description: `Generated image of ${optionPrompt}`,
+          },
+        ],
+      });
     },
-  ],
-};
+  },
+];
+
+const EVENTS: IBotEvent[] = [];
+
+module.exports = {
+  bot_module_name: BOT_MODULE_NAME,
+  commands: COMMANDS,
+  events: EVENTS,
+} as IBotModule;
