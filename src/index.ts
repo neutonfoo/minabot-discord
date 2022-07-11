@@ -1,6 +1,6 @@
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
-import { Client, Collection, Intents } from "discord.js";
+import { Client, Collection, Intents, TextChannel } from "discord.js";
 
 import { IBotCommand, IBotEvent, IBotModule } from "./interfaces/BotModule";
 
@@ -59,8 +59,17 @@ rest
   .catch(console.error);
 
 // On ready
-client.once("ready", () => {
-  console.log(`${client.user?.tag} ready`);
+client.on("ready", () => {
+  if (client.user) {
+    console.log(`Logged in as ${client.user.tag}!`);
+
+    if (process.env.NODE_ENV === "production") {
+      const channel = client.channels.cache.get(
+        process.env.BOT_STATUS_CHANNEL_ID!
+      ) as TextChannel;
+      channel.send(`${client.user.tag} deployed on **Production**.`);
+    }
+  }
 });
 
 // Interaction handler
