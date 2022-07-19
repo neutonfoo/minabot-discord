@@ -50,7 +50,7 @@ const COMMANDS: IBotCommand[] = [
       await page.$eval("button", node => (node as HTMLElement).click());
 
       await page.waitForSelector("div.wrapper", {
-        hidden: true,
+        // hidden: true,
         timeout: 0,
       });
 
