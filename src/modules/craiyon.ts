@@ -50,16 +50,12 @@ const COMMANDS: IBotCommand[] = [
       await page.$eval("button", node => (node as HTMLElement).click());
 
       await page.waitForSelector("div.wrapper", {
-        // hidden: true,
+        hidden: true,
         timeout: 0,
       });
 
-      // Close Video
+      // Hide Video
       await page.addStyleTag({ content: "#aniplayer{display: none}" });
-      // await page.$eval("#aniplayer", node => (node as HTMLElement).hid());
-
-      // // Close video
-      // await page.$eval("#av-close-btn", node => (node as HTMLElement).click());
 
       const savedImagePath = `${tmpDirectory}/${savedImagePrefix}${MD5Hash(
         optionPrompt
