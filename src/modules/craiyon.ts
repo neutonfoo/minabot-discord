@@ -29,6 +29,7 @@ const COMMANDS: IBotCommand[] = [
       const startTime = performance.now();
 
       const browser = await puppeteer.launch({
+        headless: false,
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
       });
       const page = await browser.newPage();
@@ -36,6 +37,11 @@ const COMMANDS: IBotCommand[] = [
       await page.waitForNetworkIdle();
 
       const appElement = await page.$("#app");
+      const privacyButtons = await page.$(
+        "#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button:nth-child(2)"
+      );
+
+      await privacyButtons?.click();
 
       await page.type("div#prompt", optionPrompt, {
         delay: 100,
@@ -48,10 +54,12 @@ const COMMANDS: IBotCommand[] = [
         timeout: 0,
       });
 
-      // Close Ad
-      await page.$eval("span.mmt-sticky-close", node =>
-        (node as HTMLElement).click()
-      );
+      // Close Video
+      await page.addStyleTag({ content: "#aniplayer{display: none}" });
+      // await page.$eval("#aniplayer", node => (node as HTMLElement).hid());
+
+      // // Close video
+      // await page.$eval("#av-close-btn", node => (node as HTMLElement).click());
 
       const savedImagePath = `${tmpDirectory}/${savedImagePrefix}${MD5Hash(
         optionPrompt
