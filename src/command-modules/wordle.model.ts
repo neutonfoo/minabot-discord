@@ -1,6 +1,12 @@
-import { model, Schema } from "mongoose";
+import { model, Schema } from 'mongoose';
 
-export interface IPlayer {
+export interface GameImpl {
+  wordleIndex: number;
+  isHardMode: boolean;
+  attempts: number;
+}
+
+export interface PlayerImpl {
   id: string;
   name: string;
   pointsScore: number;
@@ -11,16 +17,10 @@ export interface IPlayer {
   longestStreak: number;
   currentStreak: number;
   isStreaking: boolean;
-  games: Game[];
+  games: GameImpl[];
 }
 
-export interface Game {
-  wordleIndex: number;
-  isHardMode: boolean;
-  attempts: number;
-}
-
-const playerSchema = new Schema<IPlayer>({
+const playerSchema = new Schema<PlayerImpl>({
   id: { type: String, required: true },
   name: { type: String, required: true },
   pointsScore: { type: Number },
@@ -38,10 +38,10 @@ const playerSchema = new Schema<IPlayer>({
   ],
 });
 
-export const Player = model<IPlayer>("Player", playerSchema);
+export const PlayerModel = model<PlayerImpl>('Player', playerSchema);
 
 export const NewPlayerBuilder = (authorId: string, authorName: string) =>
-  new Player({
+  new PlayerModel({
     id: authorId,
     name: authorName,
     weeklyGamesPlayed: 0,
@@ -53,7 +53,7 @@ export const NewPlayerBuilder = (authorId: string, authorName: string) =>
     games: [],
   });
 
-export interface IWordleMeta {
+export interface WordleMetaImpl {
   currentWordleIndex: number;
   weekStartWordleIndex: number;
   numberOfPlayers: number;
@@ -65,7 +65,7 @@ export interface IWordleMeta {
   }[];
 }
 
-const wordleMetaSchema = new Schema<IWordleMeta>({
+const wordleMetaSchema = new Schema<WordleMetaImpl>({
   currentWordleIndex: { type: Number },
   weekStartWordleIndex: { type: Number },
   numberOfPlayers: { type: Number },
@@ -79,4 +79,7 @@ const wordleMetaSchema = new Schema<IWordleMeta>({
   ],
 });
 
-export const WordleMeta = model<IWordleMeta>("WordleMeta", wordleMetaSchema);
+export const WordleMetaModel = model<WordleMetaImpl>(
+  'WordleMeta',
+  wordleMetaSchema,
+);

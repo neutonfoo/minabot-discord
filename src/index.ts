@@ -1,105 +1,111 @@
-import { REST } from "@discordjs/rest";
-import { Routes } from "discord-api-types/v9";
-import { Client, Collection, Intents, TextChannel } from "discord.js";
+if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 
-import { IBotCommand, IBotEvent, IBotModule } from "./interfaces/BotModule";
+import {
+  Collection,
+  REST,
+  Routes,
+  Client,
+  GatewayIntentBits,
+  Interaction,
+  Events,
+} from 'discord.js';
+import { CommandModuleImpl } from './models';
 
-if (process.env.NODE_ENV !== "production") require("dotenv").config();
+import ping from './command-modules/ping';
+import wordle from './command-modules/wordle';
+import twiceListening from './command-modules/music-listening';
+import craiyon from './command-modules/craiyon';
 
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN!;
-const DISCORD_APPLICATION_ID = process.env.DISCORD_APPLICATION_ID!;
-const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID!;
+// Load env variables needed for registration and the client
+const { DISCORD_APPLICATION_ID, DISCORD_GUILD_ID, DISCORD_BOT_TOKEN } =
+  process.env;
 
-// const DISCORD_BOT_MODULES = ["./modules/ping", "./modules/wordle"];
-const DISCORD_BOT_MODULES = [
-  "./modules/wordle",
-  "./modules/craiyon",
-  "./modules/twice-listening",
-];
-
+// Create the discord.js client
 const client = new Client({
   intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_PRESENCES,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessages,
   ],
 });
 
-const commands = new Collection<string, IBotCommand>();
-const events: IBotEvent[] = [];
+// List of slash commands to register
+const commandModulesToRegister: CommandModuleImpl[] = [
+  ping,
+  wordle,
+  twiceListening,
+  craiyon,
+];
 
-// Load commands into commands array
-for (const bot_module of DISCORD_BOT_MODULES.map(
-  DISCORD_BOT_MODULE => require(DISCORD_BOT_MODULE) as IBotModule
-)) {
-  for (const bot_module_command of bot_module.commands) {
-    if (commands.has(bot_module_command.data.name)) {
-      console.error(
-        `Command '${bot_module_command.data.name}' repeated in module '${bot_module.bot_module_name}'. Exiting.`
-      );
-      process.exit(1);
-    }
+// commandModules = Consolidated list of commands. In this format for slash command registering and handling
+const commandModules: Collection<string, CommandModuleImpl> = new Collection();
+commandModulesToRegister.forEach((commandModuleToRegister) =>
+  commandModules.set(
+    commandModuleToRegister.commandName,
+    commandModuleToRegister,
+  ),
+);
 
-    commands.set(bot_module_command.data.name, bot_module_command);
-  }
+const rest = new REST({ version: '10' }).setToken(DISCORD_BOT_TOKEN!);
 
-  for (const bot_module_event of bot_module.events) {
-    events.push(bot_module_event);
-  }
-}
-
-// After commands succesfully loaded, register them
-const rest = new REST({ version: "9" }).setToken(DISCORD_BOT_TOKEN);
-rest
-  .put(
-    Routes.applicationGuildCommands(DISCORD_APPLICATION_ID, DISCORD_GUILD_ID),
-    { body: commands.mapValues(command => command.data).toJSON() }
-  )
-  .then(() => console.log("Successfully registered application commands."))
-  .catch(console.error);
-
-// On ready
-client.on("ready", () => {
-  if (client.user) {
-    console.log(`Logged in as ${client.user.tag}!`);
-
-    if (process.env.NODE_ENV === "production") {
-      const channel = client.channels.cache.get(
-        process.env.BOT_STATUS_CHANNEL_ID!
-      ) as TextChannel;
-      channel.send(`${client.user.tag} deployed on **Production**.`);
-    }
-  }
-});
-
-// Interaction handler
-client.on("interactionCreate", async interaction => {
-  if (!interaction.isCommand()) return;
-
-  const command = commands.get(interaction.commandName);
-
-  if (!command) return;
-
+(async () => {
   try {
-    await command.execute(interaction);
+    console.log('Started refreshing application (/) commands.');
+
+    await rest.put(
+      Routes.applicationGuildCommands(
+        DISCORD_APPLICATION_ID!,
+        DISCORD_GUILD_ID!,
+      ),
+      {
+        body: commandModules
+          .filter((commandModule) =>
+            commandModule.slashCommands ? true : false,
+          )
+          .mapValues((commandModule) => commandModule.slashCommands!.data)
+          .toJSON(),
+      },
+    );
+
+    console.log('Successfully reloaded application (/) commands.');
   } catch (error) {
     console.error(error);
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
+  }
+})();
+
+client.on(Events.ClientReady, () => {
+  if (client.user) {
+    console.log(`Logged in as ${client.user.tag}!`);
+    console.log(
+      `Command Modules loaded: ${commandModules
+        .map((_, commandModuleName) => commandModuleName)
+        .join(', ')}`,
+    );
   }
 });
 
-// Event handler
-for (const event of events) {
-  client.on(event.event_name, async (...args: String[]) => {
-    try {
-      await event.execute(...args);
-    } catch (err) {
-      err ? console.error(err) : console.log("Undefined error");
-    }
-  });
-}
+client.on(Events.InteractionCreate, async (interaction: Interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  if (commandModules.has(interaction.commandName)) {
+    commandModules
+      .get(interaction.commandName)
+      ?.slashCommands?.execute(interaction);
+  }
+});
+
+commandModules.forEach((command) => {
+  if (command.eventListeners) {
+    command.eventListeners.forEach((eventListener) =>
+      client.on(eventListener.eventName, async (...args) => {
+        try {
+          eventListener.execute(...args);
+        } catch (err: any) {
+          err ? console.error(err) : console.log('Undefined error');
+        }
+      }),
+    );
+  }
+});
 
 client.login(DISCORD_BOT_TOKEN);
