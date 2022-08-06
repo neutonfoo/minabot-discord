@@ -8,6 +8,7 @@ import {
   GatewayIntentBits,
   Interaction,
   Events,
+  TextChannel,
 } from 'discord.js';
 import { CommandModuleImpl } from './models';
 
@@ -81,6 +82,13 @@ client.on(Events.ClientReady, () => {
         .map((_, commandModuleName) => commandModuleName)
         .join(', ')}`,
     );
+
+    if (process.env.NODE_ENV === 'production') {
+      const bot_status_channel = client.channels.cache.get(
+        process.env.BOT_STATUS_CHANNEL_ID!,
+      ) as TextChannel;
+      bot_status_channel.send(`${client.user.tag} deployed on **Production**.`);
+    }
   }
 });
 
