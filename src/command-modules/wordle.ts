@@ -20,7 +20,7 @@ import {
   NewPlayerBuilder,
   GameImpl,
   PlayerImpl,
-} from './wordle.model';
+} from './wordle.models';
 
 const NAME = 'Wordle';
 const COMMAND_NAME = 'wordle';

@@ -24,3 +24,8 @@ export const twiceReactionEmojiIds = [
 
 export const MD5 = (s: string) =>
   crypto.createHash('md5').update(s).digest('hex');
+
+export const randomIntBetween = (min: number, max: number) =>
+  Math.floor(Math.random() * (max - min + 1) + min);
+
+export const randomHSL = () => `hsl(${randomIntBetween(0, 360)}%, 100%, 50%)`;
