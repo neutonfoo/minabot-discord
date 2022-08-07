@@ -29,3 +29,7 @@ export const randomIntBetween = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1) + min);
 
 export const randomHSL = () => `hsl(${randomIntBetween(0, 360)}%, 100%, 50%)`;
+
+export const sortAlphabet = (str: string) => {
+  return [...str].sort((a, b) => a.localeCompare(b)).join('');
+};

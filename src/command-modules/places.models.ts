@@ -27,6 +27,7 @@ import {
   GoogleSpreadsheetWorksheet,
 } from 'google-spreadsheet';
 import randomColor from 'randomcolor';
+import { randomIntBetween, sortAlphabet } from '../utility';
 
 const yelp = require('yelp-fusion');
 
@@ -69,17 +70,21 @@ enum PlacesVisitsWorksheetHeader {
   // City = 'City',
   // Name = 'Name',
   Order = 'Order',
-  Comments = 'Comments',
+  Visitors = 'Visitors',
+  Y_URL = 'Y_URL',
 }
 
 enum PlacesSymbol {
   Favorite = '⭐',
+  Bucketlist = '🪣',
   Toggle_Images = '📷',
-  Bucketlist = '✨',
+  CategoryBullet = '- ',
   TypesBullet = '- ',
   TagsBullet = '- ',
   CommentsBullet = '• ',
   TopOrdersBullet = '• ',
+  EVisit = '🥖',
+  NVisit = '🐄',
 }
 
 interface PlacesTypeAndTagImpl {
@@ -127,6 +132,7 @@ enum PlacesFormCustomId {
   AddTopOrderOrCommentButton = 'topOrderOrCommentButton',
   AddVisitButton = 'addVisitButton',
   // Modals
+  // Modal custom-ids are appended with a random number because of how they are processed
   ERateModal = 'eRateModal',
   ERateTextInput = 'eRateTextInput',
   NRateModal = 'nRateModal',
@@ -137,7 +143,6 @@ enum PlacesFormCustomId {
   AddVisitModal = 'addVisitModal',
   AddVisitDateTextInput = 'addVisitDateTextInput',
   AddVisitOrderTextInput = 'addVisitOrderTextInput',
-  AddVisitCommentsTextInput = 'addVisitCommentsTextInput',
 }
 
 export class PlacesManager {
@@ -156,6 +161,16 @@ export class PlacesManager {
   yelpApiKey: string;
   yelpClient: any;
 
+  // Cached Rows
+  placesCache!: {
+    places: GoogleSpreadsheetRow[];
+    categories: string[];
+    types: string[];
+    tags: string[];
+    states: string[];
+    cities: string[];
+  };
+
   constructor(
     googleSpreadsheetId: string,
     googleSpreadsheetEmail: string,
@@ -167,6 +182,10 @@ export class PlacesManager {
     this.googleSpreadsheetPrivateKey = googleSpreadsheetPrivateKey;
     this.yelpApiKey = yelpApiKey;
   }
+
+  public injectClient = (client: Client) => {
+    this.client = client;
+  };
 
   public connect = async () => {
     this.yelpClient = yelp.client(this.yelpApiKey);
@@ -182,9 +201,62 @@ export class PlacesManager {
     this.visitsWorksheet = this.googleSpreadsheet.sheetsByIndex[1];
   };
 
-  public injectClient = (client: Client) => {
-    this.client = client;
+  updatePlacesCache = async () => {
+    const placesRows = await this.placesWorksheet.getRows();
+
+    this.placesCache = {
+      places: placesRows,
+      categories: [
+        ...new Set(
+          ...placesRows.map((place) =>
+            place[PlacesWorksheetHeader.Categories]
+              .split('\n')
+              .map((category: string) =>
+                category.substring(PlacesSymbol.CategoryBullet.length),
+              ),
+          ),
+        ),
+      ] as string[],
+      tags: [
+        ...new Set(
+          ...placesRows.map((place) =>
+            place[PlacesWorksheetHeader.Tags]
+              ? place[PlacesWorksheetHeader.Tags]
+                  .split('\n')
+                  .map((tag: string) =>
+                    tag.substring(PlacesSymbol.TagsBullet.length),
+                  )
+              : null,
+          ),
+        ),
+      ] as string[],
+      types: [
+        ...new Set(
+          ...placesRows.map((place) =>
+            place[PlacesWorksheetHeader.Types]
+              ? place[PlacesWorksheetHeader.Types]
+                  .split('\n')
+                  .map((type: string) =>
+                    type.substring(PlacesSymbol.TypesBullet.length),
+                  )
+              : null,
+          ),
+        ),
+      ] as string[],
+      states: [
+        ...new Set(
+          placesRows.map((place) => place[PlacesWorksheetHeader.State]),
+        ),
+      ],
+      cities: [
+        ...new Set(
+          placesRows.map((place) => place[PlacesWorksheetHeader.City]),
+        ),
+      ],
+    };
   };
+
+  public pickRandomPlace = async () => {};
 
   public processPlace = async (
     message: Message,
@@ -250,6 +322,7 @@ interface yelpInfoImpl {
 
 interface userInfoImpl {
   favorite: string;
+  bucketlist: string;
   eRating: string;
   nRating: string;
   types: string[];
@@ -288,6 +361,9 @@ class Place {
   addTopOrderOrCommentModal!: ModalBuilder;
   addVisitModal!: ModalBuilder;
   modalEventHandler!: (interaction: Interaction) => Promise<void>;
+
+  // Visits
+  // visits: Visit[] = [];
 
   constructor(
     yelpBusinessJson: any,
@@ -360,7 +436,8 @@ class Place {
       .addFields(
         {
           name: 'Favorite',
-          value: this.userInfo.favorite || '(no)',
+          value:
+            `${this.userInfo.favorite}${this.userInfo.bucketlist}` || '(no)',
           inline: true,
         },
         {
@@ -438,15 +515,15 @@ class Place {
       new ButtonBuilder()
         .setCustomId(PlacesFormCustomId.ERateButton)
         .setLabel('Elaine Rate')
-        .setStyle(ButtonStyle.Primary),
+        .setStyle(ButtonStyle.Danger),
       new ButtonBuilder()
         .setCustomId(PlacesFormCustomId.NRateButton)
         .setLabel('Neuton Rate')
-        .setStyle(ButtonStyle.Primary),
+        .setStyle(ButtonStyle.Danger),
       new ButtonBuilder()
         .setCustomId(PlacesFormCustomId.AddTopOrderOrCommentButton)
         .setLabel('Add Top Orders / Comment')
-        .setStyle(ButtonStyle.Secondary),
+        .setStyle(ButtonStyle.Primary),
       new ButtonBuilder()
         .setCustomId(PlacesFormCustomId.AddVisitButton)
         .setLabel('Add Visit')
@@ -511,7 +588,7 @@ class Place {
         ),
       );
 
-    // Add Vosot Modal
+    // Add Visit Modal
     this.addVisitModal = new ModalBuilder()
       .setCustomId(
         `${PlacesFormCustomId.AddVisitModal}-${this.currentRandomIndex}`,
@@ -523,13 +600,6 @@ class Place {
             .setCustomId(PlacesFormCustomId.AddVisitOrderTextInput)
             .setLabel('Enter your order')
             .setStyle(TextInputStyle.Paragraph),
-        ),
-        new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId(PlacesFormCustomId.AddVisitCommentsTextInput)
-            .setLabel('Enter your comments')
-            .setStyle(TextInputStyle.Paragraph)
-            .setRequired(false),
         ),
         new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
           new TextInputBuilder()
@@ -567,6 +637,7 @@ class Place {
   setupFormCollectors = async () => {
     // Reaction Collector
     await this.mainMessage.react(PlacesSymbol.Favorite);
+    await this.mainMessage.react(PlacesSymbol.Bucketlist);
     await this.mainMessage.react(PlacesSymbol.Toggle_Images);
 
     const reactionFilter: CollectorFilter<[MessageReaction, User]> = (
@@ -577,6 +648,7 @@ class Place {
         !user.bot &&
         [
           PlacesSymbol.Favorite.toString(),
+          PlacesSymbol.Bucketlist.toString(),
           PlacesSymbol.Toggle_Images.toString(),
         ].includes(reaction.emoji.name!)
       );
@@ -592,6 +664,14 @@ class Place {
           : PlacesSymbol.Favorite;
 
         this.placeRow[PlacesWorksheetHeader.Favorite] = this.userInfo.favorite;
+        this.placeRow.save();
+        this.refreshEmbedsAndComponents();
+      } else if (reaction.emoji.name === PlacesSymbol.Bucketlist) {
+        this.userInfo.bucketlist = this.userInfo.bucketlist
+          ? ''
+          : PlacesSymbol.Bucketlist;
+        this.placeRow[PlacesWorksheetHeader.Bucketlist] =
+          this.userInfo.bucketlist;
         this.placeRow.save();
         this.refreshEmbedsAndComponents();
       } else if (reaction.emoji.name === PlacesSymbol.Toggle_Images) {
@@ -713,13 +793,13 @@ class Place {
         interaction.customId ===
         `${PlacesFormCustomId.AddTopOrderOrCommentModal}-${this.currentRandomIndex}`
       ) {
-        const newTopOrder = interaction.fields.getTextInputValue(
-          PlacesFormCustomId.AddTopOrderTextInput,
-        );
+        const newTopOrder = interaction.fields
+          .getTextInputValue(PlacesFormCustomId.AddTopOrderTextInput)
+          .trim();
 
-        const newComment = interaction.fields.getTextInputValue(
-          PlacesFormCustomId.AddCommentTextInput,
-        );
+        const newComment = interaction.fields
+          .getTextInputValue(PlacesFormCustomId.AddCommentTextInput)
+          .trim();
 
         let hasNewTopOrderOrComment = false;
 
@@ -755,20 +835,18 @@ class Place {
         const newVisitDate = interaction.fields.getTextInputValue(
           PlacesFormCustomId.AddVisitDateTextInput,
         );
-        const newVisitOrder = interaction.fields.getTextInputValue(
-          PlacesFormCustomId.AddVisitOrderTextInput,
-        );
+        const newVisitOrder = interaction.fields
+          .getTextInputValue(PlacesFormCustomId.AddVisitOrderTextInput)
+          .trim();
 
-        const newVisitComments = interaction.fields.getTextInputValue(
-          PlacesFormCustomId.AddVisitCommentsTextInput,
-        );
-
-        this.visitsWorksheet.addRow({
+        const visitRow = await this.visitsWorksheet.addRow({
           [PlacesVisitsWorksheetHeader.Y_ID]: this.yelpInfo.id,
           [PlacesVisitsWorksheetHeader.Date_Visited]: newVisitDate,
           [PlacesVisitsWorksheetHeader.Order]: newVisitOrder,
-          [PlacesVisitsWorksheetHeader.Comments]: newVisitComments,
         });
+
+        const visit = new Visit(this, newVisitDate, newVisitOrder, visitRow);
+        await visit.createVisit();
 
         // Cast as ButtonInteraction to run deferUpdate()
         (interaction as unknown as ButtonInteraction).deferUpdate();
@@ -781,13 +859,15 @@ class Place {
   getNewRow = (isBucketlist: boolean) => ({
     [PlacesWorksheetHeader.Y_ID]: this.yelpInfo.id,
     [PlacesWorksheetHeader.Date_Added]: new Date().toLocaleDateString(),
-    [PlacesWorksheetHeader.Bucketlist]: isBucketlist ? '✔️' : '',
+    [PlacesWorksheetHeader.Bucketlist]: isBucketlist
+      ? PlacesSymbol.Bucketlist
+      : '',
     [PlacesWorksheetHeader.State]: this.yelpInfo.state,
     [PlacesWorksheetHeader.City]: this.yelpInfo.city,
     [PlacesWorksheetHeader.Name]: this.yelpInfo.name,
     [PlacesWorksheetHeader.Price]: this.yelpInfo.price,
     [PlacesWorksheetHeader.Categories]: this.yelpInfo.categories
-      .map((category) => `- ${category.title}`)
+      .map((category) => `${PlacesSymbol.CategoryBullet}${category.title}`)
       .join('\n'),
     [PlacesWorksheetHeader.Address]: this.yelpInfo.address,
     [PlacesWorksheetHeader.Y_Rating]: this.yelpInfo.rating,
@@ -805,6 +885,7 @@ class Place {
 
     this.userInfo = {
       favorite: this.placeRow[PlacesWorksheetHeader.Favorite],
+      bucketlist: this.placeRow[PlacesWorksheetHeader.Bucketlist],
       eRating: this.placeRow[PlacesWorksheetHeader.E_Rating],
       nRating: this.placeRow[PlacesWorksheetHeader.N_Rating],
       types: this.placeRow[PlacesWorksheetHeader.Types]
@@ -822,5 +903,122 @@ class Place {
       topOrders: this.placeRow[PlacesWorksheetHeader.Top_Orders],
       comments: this.placeRow[PlacesWorksheetHeader.Comments],
     };
+  };
+}
+
+class Visit {
+  place: Place;
+  newVisitDate: string;
+  newVisitOrder: string;
+  visitRow: GoogleSpreadsheetRow;
+
+  visitEmbed!: EmbedBuilder;
+  visitMessage!: Message;
+
+  constructor(
+    place: Place,
+    newVisitDate: string,
+    newVisitOrder: string,
+    visitRow: GoogleSpreadsheetRow,
+  ) {
+    this.place = place;
+    this.newVisitDate = newVisitDate;
+    this.newVisitOrder = newVisitOrder;
+    this.visitRow = visitRow;
+  }
+
+  createVisit = async () => {
+    await this.createEmbed();
+    this.visitMessage = await this.place.mainMessage.reply({
+      embeds: [this.visitEmbed],
+    });
+    await this.setupFormCollector();
+  };
+
+  createEmbed = async () => {
+    this.visitEmbed = new EmbedBuilder()
+      .setColor(this.place.embedColor)
+      .setTitle(`${this.newVisitDate} - ${this.place.yelpInfo.name}`)
+      .setURL(this.place.yelpInfo.url)
+      .addFields(
+        {
+          name: 'Visitors',
+          value: this.visitRow[PlacesVisitsWorksheetHeader.Visitors]
+            ? this.visitRow[PlacesVisitsWorksheetHeader.Visitors]
+            : '(no one)',
+        },
+
+        {
+          name: 'Order',
+          value: this.visitRow[PlacesVisitsWorksheetHeader.Order],
+        },
+      );
+    // .setFooter({ text: `Visited on ` });
+  };
+
+  refreshEmbed = async () => {
+    this.createEmbed();
+    this.visitMessage.edit({
+      embeds: [this.visitEmbed],
+    });
+  };
+
+  setupFormCollector = async () => {
+    await this.visitMessage.react(PlacesSymbol.EVisit);
+    await this.visitMessage.react(PlacesSymbol.NVisit);
+
+    const reactionFilter: CollectorFilter<[MessageReaction, User]> = (
+      reaction,
+      user,
+    ) => {
+      return (
+        !user.bot &&
+        [
+          PlacesSymbol.EVisit.toString(),
+          PlacesSymbol.NVisit.toString(),
+        ].includes(reaction.emoji.name!)
+      );
+    };
+    const reactionCollector = this.visitMessage.createReactionCollector({
+      filter: reactionFilter,
+      time: collectorTime,
+    });
+    reactionCollector.on('collect', (reaction, user) => {
+      if (!this.visitRow[PlacesVisitsWorksheetHeader.Visitors]) {
+        this.visitRow[PlacesVisitsWorksheetHeader.Visitors] =
+          reaction.emoji.name;
+      } else {
+        if (
+          this.visitRow[PlacesVisitsWorksheetHeader.Visitors].includes(
+            reaction.emoji.name,
+          )
+        ) {
+          this.visitRow[PlacesVisitsWorksheetHeader.Visitors] = this.visitRow[
+            PlacesVisitsWorksheetHeader.Visitors
+          ].replace(reaction.emoji.name, '');
+        } else {
+          this.visitRow[PlacesVisitsWorksheetHeader.Visitors] +=
+            reaction.emoji.name;
+          this.visitRow[PlacesVisitsWorksheetHeader.Visitors] = sortAlphabet(
+            this.visitRow[PlacesVisitsWorksheetHeader.Visitors],
+          );
+        }
+      }
+
+      this.visitRow.save();
+      this.refreshEmbed();
+
+      this.visitMessage.reactions
+        .resolve(reaction.emoji.name!)
+        ?.users.remove(user.id);
+    });
+    reactionCollector.on('end', (_collected) => {
+      this.visitMessage.reactions.removeAll();
+    });
+
+    this.visitMessage.createReactionCollector({
+      filter: reactionFilter,
+      time: collectorTime,
+    });
   };
 }

@@ -6,6 +6,7 @@ import {
 
 export interface SlashCommandImpl {
   data:
+    | undefined
     | SlashCommandBuilder
     | SlashCommandSubcommandsOnlyBuilder
     | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
@@ -20,6 +21,7 @@ export interface EventListenerImpl {
 export interface CommandModuleImpl {
   name: string;
   commandName: string;
+  requireReady: boolean;
   slashCommands?: SlashCommandImpl;
   eventListeners?: EventListenerImpl[];
 }

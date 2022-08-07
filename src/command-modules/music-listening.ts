@@ -5,6 +5,7 @@ import { createCronJob } from '../utility';
 
 const NAME = 'Twice Listening';
 const COMMAND_NAME = 'twice-listening';
+const REQUIRE_READY = false;
 
 // # Song List
 const songList = [
@@ -165,6 +166,7 @@ const cronSongChange = (client: Client): CronJob =>
 const commandModule: CommandModuleImpl = {
   name: NAME,
   commandName: COMMAND_NAME,
+  requireReady: REQUIRE_READY,
   eventListeners,
 };
 

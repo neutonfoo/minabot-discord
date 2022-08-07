@@ -7,6 +7,7 @@ import {
 
 const NAME = 'Ping';
 const COMMAND_NAME = 'ping';
+const REQUIRE_READY = false;
 
 const slashCommands: SlashCommandImpl = {
   data: new SlashCommandBuilder()
@@ -31,6 +32,7 @@ const eventListeners: EventListenerImpl[] = [
 const commandModule: CommandModuleImpl = {
   name: NAME,
   commandName: COMMAND_NAME,
+  requireReady: REQUIRE_READY,
   slashCommands,
   eventListeners,
 };

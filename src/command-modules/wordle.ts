@@ -24,6 +24,7 @@ import {
 
 const NAME = 'Wordle';
 const COMMAND_NAME = 'wordle';
+const REQUIRE_READY = false;
 
 if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 
@@ -120,13 +121,6 @@ const eventListeners: EventListenerImpl[] = [
     },
   },
 ];
-
-const commandModule: CommandModuleImpl = {
-  name: NAME,
-  commandName: COMMAND_NAME,
-  slashCommands,
-  eventListeners,
-};
 
 async function leaderboardStr(): Promise<string> {
   // # Leaderboard
@@ -438,5 +432,13 @@ const cronWeeklyReset = (client: Client): CronJob =>
       player.save();
     }
   });
+
+const commandModule: CommandModuleImpl = {
+  name: NAME,
+  commandName: COMMAND_NAME,
+  requireReady: REQUIRE_READY,
+  slashCommands,
+  eventListeners,
+};
 
 export default commandModule;

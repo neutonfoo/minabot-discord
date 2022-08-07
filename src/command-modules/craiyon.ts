@@ -1,14 +1,12 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import {
-  CommandModuleImpl,
-  EventListenerImpl,
-  SlashCommandImpl,
-} from '../models';
+import { CommandModuleImpl, SlashCommandImpl } from '../models';
 import puppeteer from 'puppeteer';
 import { MD5, tmpDirectory } from '../utility';
 
 const NAME = 'Craiyon';
 const COMMAND_NAME = 'craiyon';
+const REQUIRE_READY = false;
+
 const savedImagePrefix = 'craiyon_';
 
 const slashCommands: SlashCommandImpl = {
@@ -89,6 +87,7 @@ const slashCommands: SlashCommandImpl = {
 const commandModule: CommandModuleImpl = {
   name: NAME,
   commandName: COMMAND_NAME,
+  requireReady: REQUIRE_READY,
   slashCommands,
 };
 

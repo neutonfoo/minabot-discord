@@ -52,30 +52,41 @@ commandModulesToRegister.forEach((commandModuleToRegister) =>
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_BOT_TOKEN!);
 
-(async () => {
-  try {
-    console.log('Started refreshing application (/) commands.');
+// Ready count, for Slash commands that depend on fetched-data
+let commandModulesReadyCount = 0;
+const requiredCommandModulesReadyCount = commandModulesToRegister.filter(
+  (commandModuleToRegister) => commandModuleToRegister.requireReady,
+).length;
 
-    await rest.put(
-      Routes.applicationGuildCommands(
-        DISCORD_APPLICATION_ID!,
-        DISCORD_GUILD_ID!,
-      ),
-      {
-        body: commandModules
-          .filter((commandModule) =>
-            commandModule.slashCommands ? true : false,
-          )
-          .mapValues((commandModule) => commandModule.slashCommands!.data)
-          .toJSON(),
-      },
-    );
+export const setReady = () => {
+  commandModulesReadyCount++;
+  if (commandModulesReadyCount === requiredCommandModulesReadyCount) {
+    (async () => {
+      try {
+        console.log('Started refreshing application (/) commands.');
 
-    console.log('Successfully reloaded application (/) commands.');
-  } catch (error) {
-    console.error(error);
+        await rest.put(
+          Routes.applicationGuildCommands(
+            DISCORD_APPLICATION_ID!,
+            DISCORD_GUILD_ID!,
+          ),
+          {
+            body: commandModules
+              .filter((commandModule) =>
+                commandModule.slashCommands ? true : false,
+              )
+              .mapValues((commandModule) => commandModule.slashCommands!.data)
+              .toJSON(),
+          },
+        );
+
+        console.log('Successfully reloaded application (/) commands.');
+      } catch (error) {
+        console.error(error);
+      }
+    })();
   }
-})();
+};
 
 client.on(Events.ClientReady, () => {
   if (client.user) {
