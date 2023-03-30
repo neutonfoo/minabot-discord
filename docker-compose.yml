@@ -2,3 +2,5 @@ version: '3'
 services:
   minabot-discord:
     build: .
+    env_file:
+      - ../.env/minabot-discord.env
