@@ -1,0 +1,11 @@
+name: App deployment
+on:
+  push:
+    branches:
+      - main
+jobs:
+  "Deployment":
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sending request to updater API
+        run: curl -k https://cocoshouse.xyz:3030/hook/update/daemon/minabot-discord

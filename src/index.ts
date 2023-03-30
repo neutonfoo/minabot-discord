@@ -13,10 +13,10 @@ import {
 import { CommandModuleImpl } from './models';
 
 import ping from './command-modules/ping';
-import wordle from './command-modules/wordle';
+// import wordle from './command-modules/wordle';
 import twiceListening from './command-modules/music-listening';
-import craiyon from './command-modules/craiyon';
-import places from './command-modules/places';
+// import craiyon from './command-modules/craiyon';
+// import places from './command-modules/places';
 
 // Load env variables needed for registration and the client
 const { DISCORD_APPLICATION_ID, DISCORD_GUILD_ID, DISCORD_BOT_TOKEN } =
@@ -35,10 +35,10 @@ const client = new Client({
 // List of slash commands to register
 const commandModulesToRegister: CommandModuleImpl[] = [
   ping,
-  wordle,
+  // wordle,
   twiceListening,
-  craiyon,
-  places,
+  // craiyon,
+  // places,
 ];
 
 // commandModules = Consolidated list of commands. In this format for slash command registering and handling
